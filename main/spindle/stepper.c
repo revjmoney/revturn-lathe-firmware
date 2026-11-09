@@ -141,7 +141,8 @@ static void spindleSetState (spindle_ptrs_t *spindle, spindle_state_t state, flo
                 while(st2_motor_running(motor)) {
                 	if(on_execute_realtime)
                 		onExecuteRealtime(state_get());
-                	// else run main loop?
+                	else
+                		vTaskDelay(1); // Rev: yield instead of a hard spin on the grbl core while the spindle stops
                 }
                 st2_motor_move(motor, state.ccw ? -1.0f : 1.0f, rpm, Stepper2_InfiniteSteps);
             } else

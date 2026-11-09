@@ -1524,7 +1524,7 @@ static void stepperClaimMotor (uint_fast8_t axis_id, bool claim)
     }
 }
 
-void stepperOutputStep (axes_signals_t step_out, axes_signals_t dir_out)
+IRAM_ATTR void stepperOutputStep (axes_signals_t step_out, axes_signals_t dir_out) // Rev: called from the st2 IRAM timer ISR
 {
     if(step_out.bits) {
 
@@ -2729,12 +2729,12 @@ IRAM_ATTR static uint_fast16_t valueSetAtomic (volatile uint_fast16_t *ptr, uint
     return prev;
 }
 
-static void enable_irq (void)
+IRAM_ATTR static void enable_irq (void) // Rev: reached from task_add_delayed in the st2 ISR
 {
     portEXIT_CRITICAL(&mux);
 }
 
-static void disable_irq (void)
+IRAM_ATTR static void disable_irq (void) // Rev: reached from task_add_delayed in the st2 ISR
 {
     portENTER_CRITICAL(&mux);
 }

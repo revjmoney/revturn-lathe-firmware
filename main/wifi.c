@@ -522,14 +522,16 @@ static void wifi_event_handler (void *arg, esp_event_base_t event_base, int32_t 
 
         case WIFI_EVENT_STA_DISCONNECTED:
             //stop_services();
+            if(sta_down_since == 0) { // once per outage, not on every reconnect retry
+                sta_down_since = esp_timer_get_time();
+                // Rev: stock closed these once per drop; each failed retry also raises this event, and these
+                // raw lwIP calls race the tcpip thread, so keep them to the first disconnect only.
 #if TELNET_ENABLE
-            telnetd_close_connections();
+                telnetd_close_connections();
 #endif
 #if WEBSOCKET_ENABLE
-            websocketd_close_connections();
+                websocketd_close_connections();
 #endif
-            if(sta_down_since == 0) { // report once per outage, not on every retry
-                sta_down_since = esp_timer_get_time();
                 task_add_immediate(report_plain, "WIFI STA DISCONNECTED");
             }
             // Rev patch: keep the credentials and try again (stock code wiped them and gave up)

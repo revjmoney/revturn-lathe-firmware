@@ -118,7 +118,7 @@ bool timerCfg (hal_timer_t timer, timer_cfg_t *cfg)
     return ok;
 }
 
-bool timerStart (hal_timer_t timer, uint32_t period)
+IRAM_ATTR bool timerStart (hal_timer_t timer, uint32_t period) // Rev: called from the st2 IRAM timer ISR
 {
     dtimer_t *dtimer = (dtimer_t *)timer;
 
@@ -136,7 +136,7 @@ bool timerStart (hal_timer_t timer, uint32_t period)
     return true;
 }
 
-bool timerStop (hal_timer_t timer)
+IRAM_ATTR bool timerStop (hal_timer_t timer) // Rev: called from the st2 IRAM timer ISR
 {
     ((dtimer_t *)timer)->cfg.period = 0;
     timer_ll_set_counter_enable(((dtimer_t *)timer)->hal.dev, ((dtimer_t *)timer)->hal.idx, false);
