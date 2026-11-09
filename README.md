@@ -30,6 +30,12 @@ sender, no cloud.
   **rotary C axis**), TB6600 drivers at 16x microstepping.
 - ESP32 DevKit (WROOM-32), WiFi to the shop network, WebUI v3, screen served from flash.
 
+## Printed parts
+The bed ends and the cross slide are 3D printed, original designs, STL + STEP in [`hardware/`](hardware/) with a parts
+list, hardware list and the printing lessons learned building it.
+
+![R9 cross slide drawings](hardware/drawings/drawings_r9.png)
+
 ## Machine settings (calibrated on the real lathe)
 grblHAL stores these in flash, not in the source, so after flashing a blank board send them from the MDI or a
 serial terminal. Axis values are in mm and degrees (grblHAL's native units); the screen works in inches.
