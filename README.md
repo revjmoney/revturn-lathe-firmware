@@ -30,6 +30,28 @@ sender, no cloud.
   **rotary C axis**), TB6600 drivers at 16x microstepping.
 - ESP32 DevKit (WROOM-32), WiFi to the shop network, WebUI v3, screen served from flash.
 
+## Machine settings (calibrated on the real lathe)
+grblHAL stores these in flash, not in the source, so after flashing a blank board send them from the MDI or a
+serial terminal. Axis values are in mm and degrees (grblHAL's native units); the screen works in inches.
+
+| Setting | Value | What it is |
+|---|---|---|
+| `$32` | 2 | Lathe mode (X in diameter, G7/G8) |
+| `$100` | 400 | X steps/mm: 16x, direct coupler, 8 mm lead (not yet verified by measurement) |
+| `$102` | 966 | Z steps/mm: **measured** (0.99 in per commanded inch on calipers); belt to an 8 mm T8 screw |
+| `$103` | 26.667 | C steps/deg: **measured** (one commanded turn = exactly one chuck turn); 20T to 120T belt |
+| `$110` / `$112` | 1000 / 254 | X / Z max rate, mm/min (Z held to 10 in/min until its belt stops slipping) |
+| `$113` | 54000 | C max rate, deg/min = **150 rpm** chuck |
+| `$120` / `$122` / `$123` | 50 / 10 / 180 | X / Z accel (mm/s²), C accel (deg/s², about 3 s to 100 rpm) |
+| `$30` | 150 | Max spindle rpm (the screen's slider tops out here) |
+| `$340` | 10 | Spindle at-speed tolerance %: g-code waits for the stepper spindle to reach speed |
+| `$395` | 1 | Default spindle = the stepper spindle (spindle 1 is the PWM output for a live tool) |
+| `$677` | 7 | Stepper spindle options |
+| `$2` / `$3` / `$5` | 5 / 1 / 7 | Step invert (TB6600 common anode), direction invert, limit invert |
+
+Limits worth knowing: a TB6600 is rated to about 20 kHz of step pulses, which is about 125 chuck rpm at 26.667
+steps/deg. Above that, listen for stalls.
+
 ## Branches
 - `revturn-lathe` (default): the lathe build. Build with `pio run -e revturn_lathe` (ESP-IDF 4.4).
 - `main`: stock grblHAL ESP32 (0b2d3e1) with every submodule flattened in at its pinned commit, so the
