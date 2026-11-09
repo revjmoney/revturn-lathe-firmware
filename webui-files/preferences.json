@@ -1,0 +1,9 @@
+{
+ "settings": {
+  "showextracontents": true,
+  "openextrapanelsonstart": false,
+  "extracontents": [
+   { "id": "lathe", "name": "LATHE", "icon": "Tool", "target": "page", "source": "/golathe.html", "type": "content", "refreshtime": 0 }
+  ]
+ }
+}

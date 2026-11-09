@@ -43,6 +43,8 @@ sender, no cloud.
 - X (cross slide, diameter), Z (carriage), C (chuck: a NEMA 23 that is either the **spindle** under M3/M4 or a
   **rotary C axis**), TB6600 drivers at 16x microstepping.
 - ESP32 DevKit (WROOM-32), WiFi to the shop network, WebUI v3, screen served from flash.
+- The lathe screen and the stock WebUI link to each other: **WEBUI** on the lathe screen, a **LATHE** tab in the WebUI
+  (upload [`webui-files/`](webui-files/) to the flash file system).
 
 ## Printed parts
 The bed ends and the cross slide are 3D printed, original designs, STL + STEP in [`hardware/`](hardware/) with a parts
