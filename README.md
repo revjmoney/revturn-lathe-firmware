@@ -4,6 +4,20 @@ A mini CNC lathe running **grblHAL** on a $5 ESP32, with a **ProtoTRAK / Fanuc s
 the firmware**. Open `http://<lathe>/lathe.html` on a phone, a tablet by the machine, or a PC. No app, no
 sender, no cloud.
 
+> **⚠ This is a junk-bin build, not a kit.** The lathe is 3D printed and put together from whatever was laying
+> around the shop:
+> - the rails came from a 3018 CNC upgrade and a scrapped 3D printer;
+> - the headstock (spindle and chuck) is an AliExpress unit;
+> - one stepper came out of a Cricut cutter and one is a StepperOnline motor.
+>
+> So **the STLs and every machine setting here are tuned to those exact parts.** If you build one, expect to adjust
+> the printed parts to your own rails, screws, bearings and motors, and to re-calibrate:
+> - steps per mm/degree, measured on your machine (see [the settings table](#machine-settings-calibrated-on-the-real-lathe));
+> - driver current for your motors;
+> - speeds and acceleration for whatever belts and pulleys you end up with.
+>
+> Treat this as a starting point to adapt, not a drop-in.
+
 ![DRO with zero bar and backplot](docs/screenshots/revturn-dro.png)
 
 ## The screen

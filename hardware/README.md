@@ -3,6 +3,16 @@
 The 3D-printed axis parts on the REVTURN lathe, designed from scratch in FreeCAD by Rev. J. Money and
 printed on an Ender 3 Pro. Every part ships as **STL** (to print) and **STEP** (to modify in any CAD).
 
+> **⚠ Built around parts that were laying around, so adapt before you print.**
+> - **The rails:** salvaged from a 3018 CNC upgrade and a scrapped 3D printer. The bores are sized to those exact bars:
+>   0.470 in for Z, 9.982 mm for X.
+> - **The headstock:** an AliExpress unit.
+> - **The motors:** a Cricut stepper and a StepperOnline NEMA 17.
+>
+> Bores, rail centres, motor patterns, belt lengths and pulley bores are all sized to those parts.
+> **Use the STEP files** to change them for what you have, and print a small fit test of any bore in your filament
+> before committing to the 8-hour saddle.
+
 Two families are on the machine:
 - **The bed ends (R4):** a headstock-end frame and a tailstock-end frame that clamp two round rails and carry
   the Z leadscrew, with the Z motor behind the tailstock frame on a short belt.
