@@ -4,6 +4,13 @@ A mini CNC lathe running **grblHAL** on a $5 ESP32, with a **ProtoTRAK / Fanuc s
 the firmware**. Open `http://<lathe>/lathe.html` on a phone, a tablet by the machine, or a PC. No app, no
 sender, no cloud.
 
+## ▶ Watch it run
+
+**[First test run with all 3 motors linked together (YouTube, 10 min)](https://www.youtube.com/watch?v=2WnQ3KHcuW8)**: X, Z and the
+chuck (C) in synced moves, nonstop spindle speed and direction changes, and a C-axis threading cycle.
+
+[![REVTURN first run with all 3 motors linked](https://img.youtube.com/vi/2WnQ3KHcuW8/hqdefault.jpg)](https://www.youtube.com/watch?v=2WnQ3KHcuW8)
+
 > **⚠ This is a junk-bin build, not a kit.** The lathe is 3D printed and put together from whatever was laying
 > around the shop:
 > - the rails came from a 3018 CNC upgrade and a scrapped 3D printer;
