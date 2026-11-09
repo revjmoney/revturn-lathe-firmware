@@ -13,6 +13,8 @@ printed on an Ender 3 Pro. Every part ships as **STL** (to print) and **STEP** (
 > **Use the STEP files** to change them for what you have, and print a small fit test of any bore in your filament
 > before committing to the 8-hour saddle.
 
+☕ Printing these? **[Buy me a coffee](https://buymeacoffee.com/revjmoney)** and help keep the designs coming.
+
 Two families are on the machine:
 - **The bed ends (R4):** a headstock-end frame and a tailstock-end frame that clamp two round rails and carry
   the Z leadscrew, with the Z motor behind the tailstock frame on a short belt.
@@ -85,3 +87,6 @@ uses its own Z belt ratio. Use the measured steps per mm from the
 ## License
 These printed parts (STL, STEP, drawings) are licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
 See [`LICENSE.md`](LICENSE.md).
+
+## Support
+These parts are free. If they saved you some design time, **[buy me a coffee](https://buymeacoffee.com/revjmoney)**.

@@ -4,12 +4,16 @@ A mini CNC lathe running **grblHAL** on a $5 ESP32, with a **ProtoTRAK / Fanuc s
 the firmware**. Open `http://<lathe>/lathe.html` on a phone, a tablet by the machine, or a PC. No app, no
 sender, no cloud.
 
+[![Buy me a coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/revjmoney)
+
 ## ▶ Watch it run
 
 **[First test run with all 3 motors linked together (YouTube, 10 min)](https://www.youtube.com/watch?v=2WnQ3KHcuW8)**: X, Z and the
 chuck (C) in synced moves, nonstop spindle speed and direction changes, and a C-axis threading cycle.
 
 [![REVTURN first run with all 3 motors linked](https://img.youtube.com/vi/2WnQ3KHcuW8/hqdefault.jpg)](https://www.youtube.com/watch?v=2WnQ3KHcuW8)
+
+☕ Like where this is going? **[Buy me a coffee](https://buymeacoffee.com/revjmoney)** and help keep the junk-bin lathe turning.
 
 > **⚠ This is a junk-bin build, not a kit.** The lathe is 3D printed and put together from whatever was laying
 > around the shop:
@@ -59,6 +63,8 @@ list, hardware list and the printing lessons learned building it.
 
 ![R9 cross slide drawings](hardware/drawings/drawings_r9.png)
 
+
+Printing a set from these files? **[Buy me a coffee](https://buymeacoffee.com/revjmoney)** ☕ it keeps the designs coming.
 ## Machine settings (calibrated on the real lathe)
 grblHAL stores these in flash, not in the source, so after flashing a blank board send them from the MDI or a
 serial terminal. Axis values are in mm and degrees (grblHAL's native units); the screen works in inches.
@@ -108,3 +114,9 @@ The screen itself (plain JS, 276 tests) lives in a separate repo; its built, gzi
 - **Printed parts** (`hardware/`): STL, STEP and drawings by Rev. J. Money, licensed
   [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Remix them, print them, sell parts if you like;
   credit the original and share your changes under the same license. See [`hardware/LICENSE.md`](hardware/LICENSE.md).
+
+## Support
+If REVTURN helped you or you just like watching junk turn into a lathe, you can
+**[buy me a coffee](https://buymeacoffee.com/revjmoney)**. Thank you!
+
+[![Buy me a coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/revjmoney)
