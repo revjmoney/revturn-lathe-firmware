@@ -1,0 +1,106 @@
+diff --git a/main/wifi.c b/main/wifi.c
+index a91c26d..50df735 100644
+--- a/main/wifi.c
++++ b/main/wifi.c
+@@ -50,6 +50,9 @@
+ #include "grbl/task.h"
+ #include "grbl/nvs_buffer.h"
+ #include "grbl/protocol.h"
++#include "grbl/state_machine.h"
++#include "esp_timer.h"
++#include "esp_system.h"
+ 
+ typedef struct {
+     grbl_wifi_mode_t mode;
+@@ -68,6 +71,17 @@ static EventGroupHandle_t wifi_event_group;
+ static network_settings_t network;
+ static network_services_t services = {0}, allowed_services;
+ static wifi_config_t wifi_sta_config;
++
++// Rev patch 2026-11-08: STA auto-reconnect. Stock grblHAL wiped the STA credentials on any disconnect and
++// never called esp_wifi_connect() again, so a brief WiFi drop left the lathe off the home network until a
++// reboot. Pattern from the ESP-IDF station example + ESPHome: keep the credentials, retry with backoff
++// (1 s doubling to 30 s), reset on GOT_IP, and as a last resort reboot after 15 min offline, only when Idle.
++#define STA_RETRY_MIN_MS 1000
++#define STA_RETRY_MAX_MS 30000
++#define STA_REBOOT_AFTER_US (15LL * 60LL * 1000000LL)
++static esp_timer_handle_t sta_retry_timer = NULL;
++static uint32_t sta_retry_ms = STA_RETRY_MIN_MS;
++static int64_t sta_down_since = 0;
+ static SemaphoreHandle_t aplist_mutex = NULL;
+ static ap_list_t ap_list = {0};
+ static wifi_settings_t wifi;
+@@ -374,6 +388,39 @@ char *wifi_get_authmode_name (wifi_auth_mode_t authmode)
+            "unknown";
+ }
+ 
++static void sta_retry_cb (void *arg)
++{
++    if((xEventGroupGetBits(wifi_event_group) & CONNECTED_BIT) || *wifi_sta_config.sta.ssid == '\0')
++        return;
++
++    if(sta_down_since && esp_timer_get_time() - sta_down_since > STA_REBOOT_AFTER_US && state_get() == STATE_IDLE)
++        esp_restart();
++
++    esp_wifi_connect(); // a failure raises WIFI_EVENT_STA_DISCONNECTED again, which schedules the next try
++}
++
++static void sta_schedule_retry (void)
++{
++    if(sta_retry_timer == NULL) {
++        const esp_timer_create_args_t args = { .callback = sta_retry_cb, .name = "sta_retry" };
++        if(esp_timer_create(&args, &sta_retry_timer) != ESP_OK)
++            return;
++    }
++
++    esp_timer_stop(sta_retry_timer);
++    esp_timer_start_once(sta_retry_timer, (uint64_t)sta_retry_ms * 1000ULL);
++
++    sta_retry_ms = sta_retry_ms >= STA_RETRY_MAX_MS / 2 ? STA_RETRY_MAX_MS : sta_retry_ms * 2;
++}
++
++static void sta_reconnect_reset (void)
++{
++    sta_retry_ms = STA_RETRY_MIN_MS;
++    sta_down_since = 0;
++    if(sta_retry_timer)
++        esp_timer_stop(sta_retry_timer);
++}
++
+ static void ip_event_handler (void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
+ {
+     switch(event_id) {
+@@ -381,6 +428,7 @@ static void ip_event_handler (void *arg, esp_event_base_t event_base, int32_t ev
+         case IP_EVENT_STA_GOT_IP:
+             // handle IP change (ip_change)
+             xEventGroupSetBits(wifi_event_group, CONNECTED_BIT);
++            sta_reconnect_reset();
+             ap_list.ap_selected = wifi_sta_config.sta.ssid;
+             memcpy(&ap_list.ip_addr, &((ip_event_got_ip_t *)event_data)->ip_info.ip, sizeof(ip4_addr_t));
+             strcpy(ap_list.ap_status, "Connected");
+@@ -480,9 +528,13 @@ static void wifi_event_handler (void *arg, esp_event_base_t event_base, int32_t
+ #if WEBSOCKET_ENABLE
+             websocketd_close_connections();
+ #endif
+-            task_add_immediate(report_plain, "WIFI STA DISCONNECTED");
+-            memset(&wifi_sta_config, 0, sizeof(wifi_config_t));
+-            esp_wifi_set_config(ESP_IF_WIFI_STA, &wifi_sta_config);
++            if(sta_down_since == 0) { // report once per outage, not on every retry
++                sta_down_since = esp_timer_get_time();
++                task_add_immediate(report_plain, "WIFI STA DISCONNECTED");
++            }
++            // Rev patch: keep the credentials and try again (stock code wiped them and gave up)
++            if(*wifi_sta_config.sta.ssid != '\0')
++                sta_schedule_retry();
+             if((xEventGroupGetBits(wifi_event_group) & APSTA_BIT) && !(xEventGroupGetBits(wifi_event_group) & CONNECTED_BIT)) {
+                 if(!services.dns)
+                     services.dns = dns_server_start(sta_netif);
+@@ -754,6 +806,8 @@ bool wifi_ap_connect (char *ssid, char *password)
+     if(!ok)
+         return false;
+ 
++    sta_reconnect_reset();
++
+     if(xEventGroupGetBits(wifi_event_group) & CONNECTED_BIT)
+         esp_wifi_disconnect(); // TODO: delay until response is sent...
+ 

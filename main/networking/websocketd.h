@@ -61,3 +61,4 @@ bool websocket_send_frame (websocket_t *websocket, const void *data, size_t size
 bool websocket_broadcast_frame (const void *data, size_t size, bool is_binary);
 bool websocket_set_stream_flags (websocket_t *session, io_stream_state_t stream_flags);
 bool websocket_claim_stream (websocket_t *session);
+websocket_t *websocketd_stream_owner (void); // Rev 2026-11-08

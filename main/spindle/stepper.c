@@ -222,6 +222,11 @@ static void motor_cfg (axis_settings_t *cfg)
     if(settings.stepper_spindle_flags.cfg_as_rotary) {
         cfactor = 360ULL;
         motor_settings.steps_per_mm *= 360.0f;
+        // Rev lathe fix 2026-11-08: the axis is in degrees but the spindle runs in revolutions,
+        // so the ramp ($123, deg/s^2) and top speed ($113, deg/min) must be scaled too, or M3
+        // starts 360x too hard and S is clamped 360x too high.
+        motor_settings.acceleration /= 360.0f;
+        motor_settings.max_rate /= 360.0f;
     } else
         cfactor = 1ULL;
 }
@@ -232,12 +237,20 @@ static void onSettingsChanged (settings_t *settings, settings_changed_flags_t ch
 
     spindle_ptrs_t *spindle = spindle_get_hal(spindle_id, SpindleHAL_Configured);
 
-    if(changed.spindle || spindle->rpm_max != settings->axis[axis_idx].max_rate) {
+    // Rev lathe fix 2026-11-08: rpm limit is $113 converted to rev/min when C is in degrees.
+    float rpm_max = settings->stepper_spindle_flags.cfg_as_rotary ? settings->axis[axis_idx].max_rate / 360.0f : settings->axis[axis_idx].max_rate;
+
+    // Keep the scaled ramp/top speed after any setting change (stepper2 skips bound spindle motors).
+    motor_cfg(&settings->axis[axis_idx]);
+    if(motor)
+        st2_motor_bind_spindle(axis_idx, &motor_settings);
+
+    if(changed.spindle || spindle->rpm_max != rpm_max) {
 
         spindle_ptrs_t *spindle_hal;
 
         spindle->rpm_min = 0.0f;
-        spindle->rpm_max = settings->axis[axis_idx].max_rate;
+        spindle->rpm_max = rpm_max;
         spindle->at_speed_tolerance = settings->spindle.at_speed_tolerance;
         spindle_data.at_speed_enabled = settings->spindle.at_speed_tolerance > 0.0f;
 

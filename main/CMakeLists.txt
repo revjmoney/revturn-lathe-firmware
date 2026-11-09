@@ -293,6 +293,17 @@ target_compile_definitions("${COMPONENT_LIB}" PUBLIC LWIP_HTTPD_SUPPORT_11_KEEPA
 target_compile_definitions("${COMPONENT_LIB}" PUBLIC LWIP_HTTPD_SUPPORT_POST=1)
 target_compile_definitions("${COMPONENT_LIB}" PUBLIC LWIP_HTTPD_DYNAMIC_FILE_READ=1)
 
+# Rev's mini lathe (REVTURN ESP32). Core options must be global: grbl/*.c never include my_machine.h.
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC N_AXIS=4)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC N_SPINDLE=2) # Rev 2026-11-08: stepper spindle 0 + PWM spindle 1 (core needs this, my_machine.h is not seen by core)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC AXIS3_LETTER=67) # 'C' (numeric: the quoted form does not survive the build tooling)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_LATHE_MODE=1)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_ROTARY_FIX_ENABLE=1)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_STEP_SIGNALS_INVERT_MASK=5)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_DIR_SIGNALS_INVERT_MASK=1)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_ENABLE_SIGNALS_INVERT_MASK=0)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_STEP_PULSE_MICROSECONDS=5.0f)
+
 if(BOARD_BLACKBOX_X32)
 target_compile_definitions("${COMPONENT_LIB}" PUBLIC BOARD_BLACKBOX_X32)
 target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_LIMIT_SIGNALS_INVERT_MASK=7)
@@ -306,6 +317,7 @@ endif()
 target_add_binary_data("${COMPONENT_LIB}" "embedded/favicon.ico" BINARY)
 target_add_binary_data("${COMPONENT_LIB}" "embedded/ap_login.html" BINARY)
 target_add_binary_data("${COMPONENT_LIB}" "embedded/index.html.gz" BINARY)
+target_add_binary_data("${COMPONENT_LIB}" "embedded/lathe.html.gz" BINARY) # Rev 2026-11-08: REVTURN lathe screen
 
 unset(BOARD_BLACKBOX_X32 CACHE)
 unset(Ethernet CACHE)

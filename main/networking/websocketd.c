@@ -776,9 +776,19 @@ FLASHMEM static uint32_t websocket_msg_parse (ws_sessiondata_t *session, uint8_t
                         session->header.rx_index = i;
                         frame_done = (session->header.payload_rem = session->header.payload_len - session->header.rx_index) == 0;
 
-                    } else { // No client, sink payload
-                        plen = 0;
+                    } else { // Not the controlling client: sink payload, but act on safety realtime bytes
+                        // Rev 2026-11-08: E-stop principle, any screen can reset, hold or cancel a jog.
+                        uint_fast16_t i = session->header.rx_index, n = payload_len;
+                        while(n--) {
+                            uint8_t c = *payload++ ^ mask[i++ % 4];
+                            if(c == CMD_RESET || c == CMD_FEED_HOLD || c == CMD_JOG_CANCEL || c == CMD_STATUS_REPORT)
+                                enqueue_realtime_command(c);
+                        }
+                        session->header.rx_index = i;
+                        plen -= payload_len; // keep the rest of the TCP segment (a following frame), Rev 2026-11-08
                         frame_done = (session->header.payload_rem = session->header.payload_rem - payload_len) == 0;
+                        if(frame_done)
+                            session->header.rx_index = 0;
                     }
                 }
                 break;
@@ -972,6 +982,12 @@ FLASHMEM static void http_write_error (ws_sessiondata_t *session, const char *st
     uint16_t len = strlen(status);
     http_write(session->pcb, status, &len, TCP_WRITE_FLAG_COPY);
     session->state = WsState_Closing;
+}
+
+// Rev 2026-11-08: which session owns the grbl stream (NULL if none).
+websocket_t *websocketd_stream_owner (void)
+{
+    return (websocket_t *)streambuffers.session;
 }
 
 FLASHMEM bool websocket_claim_stream (websocket_t *websocket)
@@ -1373,6 +1389,16 @@ FLASHMEM static void websocket_stream_handler (ws_sessiondata_t *session)
 
         tcp_write(session->pcb, txbuf, (u16_t)idx, TCP_WRITE_FLAG_COPY);
         tcp_output(session->pcb);
+
+        // Rev 2026-11-08: copy the same frame to every other connected screen (view only).
+        uint_fast16_t o = WEBUI_MAX_CLIENTS;
+        do {
+            ws_sessiondata_t *other = &clients[--o];
+            if(other != session && other->state == WsState_Connected && other->pcb && tcp_sndbuf(other->pcb) >= idx) {
+                tcp_write(other->pcb, txbuf, (u16_t)idx, TCP_WRITE_FLAG_COPY);
+                tcp_output(other->pcb);
+            }
+        } while(o);
 
         session->lastSendTime = xTaskGetTickCount();
     }

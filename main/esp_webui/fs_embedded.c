@@ -49,6 +49,11 @@ static esp_embedded_file_t index_html_gz = {
     .name = "index.html.gz",
 };
 
+// Rev 2026-11-08: REVTURN lathe control screen, served at /lathe.html
+static esp_embedded_file_t lathe_html_gz = {
+    .name = "lathe.html.gz",
+};
+
 static esp_embedded_file_t ap_login_html = {
     .name = "ap_login.html",
 };
@@ -64,6 +69,7 @@ static const esp_embedded_file_t *ro_files[] = {
     &ok_txt,
     &favicon_ico,
     &index_html_gz,
+    &lathe_html_gz,
     &ap_login_html,
     NULL
 };
@@ -186,6 +192,11 @@ void add_embedded_files (void)
     extern const unsigned char index_html_gz_end[]   asm("_binary_index_html_gz_end");
     index_html_gz.size = index_html_gz_end - index_html_gz_start;
     index_html_gz.data = index_html_gz_start;
+
+    extern const unsigned char lathe_html_gz_start[] asm("_binary_lathe_html_gz_start");
+    extern const unsigned char lathe_html_gz_end[]   asm("_binary_lathe_html_gz_end");
+    lathe_html_gz.size = lathe_html_gz_end - lathe_html_gz_start;
+    lathe_html_gz.data = lathe_html_gz_start;
 
     static const vfs_t fs = {
         .fopen = fs_open,

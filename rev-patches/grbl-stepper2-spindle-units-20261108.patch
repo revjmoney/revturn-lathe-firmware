@@ -1,0 +1,31 @@
+diff --git a/stepper2.c b/stepper2.c
+index 878c7fb..f026a69 100644
+--- a/stepper2.c
++++ b/stepper2.c
+@@ -111,7 +111,9 @@ FLASHMEM static void onSettingsChanged (settings_t *settings, settings_changed_f
+     on_settings_changed(settings, changed);
+ 
+     while(motor) {
+-        if(motor->flags.is_bound)
++        // Rev lathe fix 2026-11-08: a bound spindle motor is reconfigured by the spindle plugin with
++        // its own (rev based) settings; reloading raw axis settings here undid that scaling.
++        if(motor->flags.is_bound && !motor->flags.is_spindle)
+             st2_motor_config(motor, &settings->axis[motor->idx]);
+         motor = motor->next;
+     }
+@@ -324,8 +326,13 @@ FLASHMEM float st2_motor_set_speed (st2_motor_t *motor, float speed)
+         return speed;
+     }
+ 
+-    if(speed > settings.axis[motor->idx].max_rate)
+-        speed = settings.axis[motor->idx].max_rate;
++    // Rev lathe fix 2026-11-08: clamp a rotary-configured spindle in rev/min, not deg/min.
++    float max_rate = settings.axis[motor->idx].max_rate;
++    if(motor->flags.is_spindle && settings.stepper_spindle_flags.cfg_as_rotary)
++        max_rate /= 360.0f;
++
++    if(speed > max_rate)
++        speed = max_rate;
+ 
+     return _st2_set_speed(&motor->profile, speed * (motor->profile.steps_per_mm / 60.0f));
+ }

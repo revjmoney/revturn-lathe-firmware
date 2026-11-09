@@ -1,0 +1,96 @@
+diff --git a/main/CMakeLists.txt b/main/CMakeLists.txt
+index 9527a9d..2de9f4a 100644
+--- a/main/CMakeLists.txt
++++ b/main/CMakeLists.txt
+@@ -293,6 +293,17 @@ target_compile_definitions("${COMPONENT_LIB}" PUBLIC LWIP_HTTPD_SUPPORT_11_KEEPA
+ target_compile_definitions("${COMPONENT_LIB}" PUBLIC LWIP_HTTPD_SUPPORT_POST=1)
+ target_compile_definitions("${COMPONENT_LIB}" PUBLIC LWIP_HTTPD_DYNAMIC_FILE_READ=1)
+ 
++# Rev's mini lathe (REVTURN ESP32). Core options must be global: grbl/*.c never include my_machine.h.
++target_compile_definitions("${COMPONENT_LIB}" PUBLIC N_AXIS=4)
++target_compile_definitions("${COMPONENT_LIB}" PUBLIC N_SPINDLE=2) # Rev 2026-11-08: stepper spindle 0 + PWM spindle 1 (core needs this, my_machine.h is not seen by core)
++target_compile_definitions("${COMPONENT_LIB}" PUBLIC AXIS3_LETTER=67) # 'C' (numeric: the quoted form does not survive the build tooling)
++target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_LATHE_MODE=1)
++target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_ROTARY_FIX_ENABLE=1)
++target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_STEP_SIGNALS_INVERT_MASK=5)
++target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_DIR_SIGNALS_INVERT_MASK=1)
++target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_ENABLE_SIGNALS_INVERT_MASK=0)
++target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_STEP_PULSE_MICROSECONDS=5.0f)
++
+ if(BOARD_BLACKBOX_X32)
+ target_compile_definitions("${COMPONENT_LIB}" PUBLIC BOARD_BLACKBOX_X32)
+ target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_LIMIT_SIGNALS_INVERT_MASK=7)
+@@ -306,6 +317,7 @@ endif()
+ target_add_binary_data("${COMPONENT_LIB}" "embedded/favicon.ico" BINARY)
+ target_add_binary_data("${COMPONENT_LIB}" "embedded/ap_login.html" BINARY)
+ target_add_binary_data("${COMPONENT_LIB}" "embedded/index.html.gz" BINARY)
++target_add_binary_data("${COMPONENT_LIB}" "embedded/lathe.html.gz" BINARY) # Rev 2026-11-08: REVTURN lathe screen
+ 
+ unset(BOARD_BLACKBOX_X32 CACHE)
+ unset(Ethernet CACHE)
+diff --git a/main/esp_webui/fs_embedded.c b/main/esp_webui/fs_embedded.c
+index 62bc32f..c4b867e 100644
+--- a/main/esp_webui/fs_embedded.c
++++ b/main/esp_webui/fs_embedded.c
+@@ -49,6 +49,11 @@ static esp_embedded_file_t index_html_gz = {
+     .name = "index.html.gz",
+ };
+ 
++// Rev 2026-11-08: REVTURN lathe control screen, served at /lathe.html
++static esp_embedded_file_t lathe_html_gz = {
++    .name = "lathe.html.gz",
++};
++
+ static esp_embedded_file_t ap_login_html = {
+     .name = "ap_login.html",
+ };
+@@ -64,6 +69,7 @@ static const esp_embedded_file_t *ro_files[] = {
+     &ok_txt,
+     &favicon_ico,
+     &index_html_gz,
++    &lathe_html_gz,
+     &ap_login_html,
+     NULL
+ };
+@@ -187,6 +193,11 @@ void add_embedded_files (void)
+     index_html_gz.size = index_html_gz_end - index_html_gz_start;
+     index_html_gz.data = index_html_gz_start;
+ 
++    extern const unsigned char lathe_html_gz_start[] asm("_binary_lathe_html_gz_start");
++    extern const unsigned char lathe_html_gz_end[]   asm("_binary_lathe_html_gz_end");
++    lathe_html_gz.size = lathe_html_gz_end - lathe_html_gz_start;
++    lathe_html_gz.data = lathe_html_gz_start;
++
+     static const vfs_t fs = {
+         .fopen = fs_open,
+         .fclose = fs_close,
+diff --git a/platformio.ini b/platformio.ini
+index ee57cd1..4a2602a 100644
+--- a/platformio.ini
++++ b/platformio.ini
+@@ -364,3 +364,25 @@ board_build.f_flash = 40000000L
+ board_upload.flash_size = 4MB
+ monitor_speed=115200
+ 
++
++# Rev's mini lathe: REVTURN ESP32 DevKit (WROOM-32, 4 MB). Board map + options in main/my_machine.h
++[env:revturn_lathe]
++platform = espressif32 @ ~4.0.0
++framework = espidf
++board = esp32doit-devkit-v1
++board_build.partitions = partitions.csv
++board_build.embed_files =
++    main/embedded/favicon.ico
++    main/embedded/ap_login.html
++    main/embedded/index.html.gz
++    main/embedded/lathe.html.gz
++build_flags =
++    -Wimplicit-fallthrough=1
++    -Wno-missing-field-initializers
++    -Wno-maybe-uninitialized
++    -Wno-stringop-truncation
++    -DCONFIG_IDF_TARGET_ESP32=1
++upload_port = COM15
++monitor_port = COM15
++monitor_speed = 115200
++lib_compat_mode = off

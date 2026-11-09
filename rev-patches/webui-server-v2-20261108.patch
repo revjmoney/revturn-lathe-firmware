@@ -1,0 +1,82 @@
+diff --git a/server.c b/server.c
+index 47d8803..687b484 100644
+--- a/server.c
++++ b/server.c
+@@ -117,9 +117,14 @@ FLASHMEM static bool get_server_info (network_info_t *info, network_flags_t flag
+ {
+     bool ok;
+ 
+-    // TODO: check against own IP?
+-    if((ok = flags.interface_up && info->status.services.http))
++    // Rev lathe fix 2026-11-08: in AP+STA mode the AP interface came first, so ESP800 told browsers on
++    // the home network to open the websocket at the hotspot IP (192.168.5.1) and the WebUI never
++    // connected. Keep an AP match only as a fallback and stop at the first non-AP (station) interface.
++    if(flags.interface_up && info->status.services.http && *info->status.ip && strcmp(info->status.ip, "0.0.0.0")) {
+         memcpy(data, info, sizeof(network_info_t));
++        ok = info->wifi_mode != WiFiMode_AP;
++    } else
++        ok = false;
+ 
+     return ok;
+ }
+@@ -128,11 +133,24 @@ FLASHMEM network_info_t *webui_get_server_info (void)
+ {
+     static network_info_t info;
+ 
++    memset(&info, 0, sizeof(info));
+     networking_enumerate_interfaces(get_server_info, &info);
+ 
+     return &info;
+ }
+ 
++// Rev 2026-11-08: tell every client which session controls the machine (activeID).
++static void broadcast_active_id (void)
++{
++    char buf[24];
++    websocket_t *owner = websocketd_stream_owner();
++
++    if(owner) {
++        strcat(strcpy(buf, "activeID:"), uitoa((uint32_t)owner));
++        websocket_broadcast_frame(buf, strlen(buf), false);
++    }
++}
++
+ FLASHMEM void websocket_client_connect (websocket_t *websocket)
+ {
+     char buf[24];
+@@ -145,10 +163,8 @@ FLASHMEM void websocket_client_connect (websocket_t *websocket)
+         strcat(strcpy(buf, "currentID:"), uitoa((uint32_t)websocket));
+         websocket_send_frame(websocket, buf, strlen(buf), false);
+ 
+-        if(!websocket_claim_stream(websocket)) {
+-            strcat(strcpy(buf, "activeID:"), uitoa((uint32_t)websocket));
+-            websocket_broadcast_frame(buf, strlen(buf), false); // TODO: only to webui clients?
+-        }
++        websocket_claim_stream(websocket);
++        broadcast_active_id(); // Rev 2026-11-08: everyone learns who is in control
+ 
+     } else if(on_client_connect)
+         on_client_connect(websocket);
+@@ -159,6 +175,8 @@ FLASHMEM void websocket_client_disconnect (websocket_t *websocket)
+     if(client.websocket && client.websocket != websocket)
+         websocket_claim_stream(client.websocket);
+ 
++    broadcast_active_id(); // Rev 2026-11-08
++
+     if(on_client_disconnect)
+         on_client_disconnect(websocket);
+ }
+@@ -830,6 +848,13 @@ FLASHMEM const char *file_redirect (http_request_t *request, const char *uri, vf
+         *(strchr(uri, '\0') - 3) = '\0';
+     }
+ 
++    // Rev 2026-11-08: fall back to the copy built into the firmware (/embedded/lathe.html.gz etc.).
++    // A newer copy uploaded to flash (npm run deploy) is found first and wins.
++    if(*file == NULL && strlen(uri) < sizeof(path) - 13) {
++        if((*file = vfs_open(strcat(strcat(strcpy(path, "/embedded"), uri), ".gz"), mode)))
++            request->encoding = HTTPEncoding_GZIP;
++    }
++
+     return uri;
+ }
+ 

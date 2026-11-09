@@ -48,7 +48,14 @@
 //#define BOARD_XPRO_V5                 			//
 //#define BOARD_GENERIC_S3              			// Generic map for ESP32-S3, untested - WIP!
 //#define BOARD_GENERIC_I2S_S3          			// Generic map for ESP32-S3 with I2S shift registers for I/O expansion, untested - WIP!
-//#define BOARD_MY_MACHINE              			// Add my_machine_map.h in the boards directory before enabling this!
+#define BOARD_MY_MACHINE              			// Add my_machine_map.h in the boards directory before enabling this!
+
+
+// --- Rev's mini lathe (REVTURN ESP32): axis count, C letter, lathe mode and polarity are in
+// main/CMakeLists.txt, because the grbl core files do not include this header.
+#define PROBE_ENABLE            0      // no probe wired
+#define WEBUI_INFLASH           1      // Rev 2026-11-08: serve the embedded index.html.gz, no upload step
+//#define I2C_ENABLE            1      // Rev 2026-11-08: OLED removed (module dead); code kept in rev-patches/retired/oled_my_plugin.c
 
 // Configuration
 // Uncomment to enable, for some a value > 1 may be assigned, if so the default value is shown.
@@ -63,21 +70,21 @@
 // If none are specified the default PWM spindle is instantiated.
 // Spindle definitions can be found in grbl/spindle_control.h.
 // More here https://github.com/grblHAL/Plugins_spindle
-//#define SPINDLE0_ENABLE         SPINDLE_HUANYANG1
-//#define SPINDLE1_ENABLE         SPINDLE_PWM0_NODIR
+#define SPINDLE0_ENABLE         SPINDLE_STEPPER // Rev lathe: DM542T stepper is the spindle and the C axis
+#define SPINDLE1_ENABLE         SPINDLE_PWM0_NODIR // Rev 2026-11-08: second spindle (router/live tool). PWM GPIO4, enable GPIO5. N_SPINDLE=2 is in CMakeLists.txt
 //#define SPINDLE2_ENABLE         SPINDLE_NONE
 //#define SPINDLE3_ENABLE         SPINDLE_NONE
 //#define SPINDLE_OFFSET          1 // Uncomment to enable settings for laser spindle XY-offset.
 // **********************
 //#define MODBUS_ENABLE           1 // Set to 1 for auto direction, 2 for direction signal on auxiliary output pin.
-//#define WEBUI_ENABLE            3 // Enable ESP3D-WEBUI plugin along with networking and SD card plugins.
+#define WEBUI_ENABLE            3 // Rev 2026-11-08: ESP3D WebUI v3 ONLY (1 = auto answered ESP800 in v2 format, WebUI 3.0 websocket failed). Enable ESP3D-WEBUI plugin along with networking and SD card plugins.
 //#define WEBUI_AUTH_ENABLE       1 // Enable ESP3D-WEBUI authentication.
-//#define WIFI_ENABLE             1 //
-//#define WIFI_SOFTAP             1 // Use Soft AP mode for WiFi.
+#define WIFI_ENABLE             1 // Rev 2026-11-08
+#define WIFI_SOFTAP             1 // Rev 2026-11-08: boots as hotspot grblHAL_AP, set home WiFi from the WebUI. Use Soft AP mode for WiFi.
 //#define ETHERNET_ENABLE         1 // Ethernet streaming. Uses networking plugin.
 //#define BLUETOOTH_ENABLE        1 // Set to 1 for native radio, 2 for HC-05 module.
-//#define SDCARD_ENABLE           1 // Run gcode programs from SD card. Set to 2 to enable YModem upload.
-//#define LITTLEFS_ENABLE         1 // Enable flash based storage, automatically enabled if WebUI is enabled. Set to 2 to mount as root.
+#define SDCARD_ENABLE           0 // Rev 2026-11-08: NO SD hardware. Default SD SPI pins 18/19/23 are the spindle and enable! Run gcode programs from SD card. Set to 2 to enable YModem upload.
+#define LITTLEFS_ENABLE         2 // Rev 2026-11-08: flash file system mounted as root (files + WebUI). Enable flash based storage, automatically enabled if WebUI is enabled. Set to 2 to mount as root.
 //#define MPG_ENABLE              1 // Enable MPG interface. Requires a serial stream and means to switch between normal and MPG mode.
                                     // 1: Mode switching is by handshake pin.
                                     // 2: Mode switching is by the CMD_MPG_ENABLE_TOGGLE (0x8B) command character.

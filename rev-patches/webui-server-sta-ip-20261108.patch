@@ -1,0 +1,29 @@
+diff --git a/server.c b/server.c
+index 47d8803..7323f62 100644
+--- a/server.c
++++ b/server.c
+@@ -117,9 +117,14 @@ FLASHMEM static bool get_server_info (network_info_t *info, network_flags_t flag
+ {
+     bool ok;
+ 
+-    // TODO: check against own IP?
+-    if((ok = flags.interface_up && info->status.services.http))
++    // Rev lathe fix 2026-11-08: in AP+STA mode the AP interface came first, so ESP800 told browsers on
++    // the home network to open the websocket at the hotspot IP (192.168.5.1) and the WebUI never
++    // connected. Keep an AP match only as a fallback and stop at the first non-AP (station) interface.
++    if(flags.interface_up && info->status.services.http && *info->status.ip && strcmp(info->status.ip, "0.0.0.0")) {
+         memcpy(data, info, sizeof(network_info_t));
++        ok = info->wifi_mode != WiFiMode_AP;
++    } else
++        ok = false;
+ 
+     return ok;
+ }
+@@ -128,6 +133,7 @@ FLASHMEM network_info_t *webui_get_server_info (void)
+ {
+     static network_info_t info;
+ 
++    memset(&info, 0, sizeof(info));
+     networking_enumerate_interfaces(get_server_info, &info);
+ 
+     return &info;
