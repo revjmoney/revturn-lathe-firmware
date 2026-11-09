@@ -334,7 +334,12 @@ FLASHMEM float st2_motor_set_speed (st2_motor_t *motor, float speed)
     if(speed > max_rate)
         speed = max_rate;
 
-    // Rev lathe fix 2026-11-09: the step ISR reads and writes the same profile; change it atomically.
+    // Rev lathe fix 2026-11-09: the step ISR reads and writes the same profile; change it atomically,
+    // but only while the motor runs. At idle the ISR is not touching it, and this is called constantly
+    // (holding the lock on every call starved WiFi: screens could not connect).
+    if(motor->profile.state == State_Idle)
+        return _st2_set_speed(&motor->profile, speed * (motor->profile.steps_per_mm / 60.0f));
+
     hal.irq_disable();
     speed = _st2_set_speed(&motor->profile, speed * (motor->profile.steps_per_mm / 60.0f));
     hal.irq_enable();
@@ -377,9 +382,12 @@ FLASHMEM bool st2_motor_move (st2_motor_t *motor, const float move, const float 
         return motor->profile.state == State_Idle;
     }
 
-    hal.irq_disable(); // Rev lathe fix 2026-11-09: atomic against the step ISR
-    bool started = _st2_start(&motor->profile);
-    hal.irq_enable();
+    bool started, lock = motor->profile.state != State_Idle; // Rev lathe fix 2026-11-09: lock only if the ISR is live
+    if(lock)
+        hal.irq_disable();
+    started = _st2_start(&motor->profile);
+    if(lock)
+        hal.irq_enable();
 
     if(!started)
         return false;
@@ -487,6 +495,9 @@ This will initiate deceleration to stop the motor if it is running.
 */
 FLASHMEM bool st2_motor_stop (st2_motor_t *motor)
 {
+    if(motor->profile.state == State_Idle) // Rev lathe fix 2026-11-09: nothing to stop, no lock (see set_speed)
+        return false;
+
     hal.irq_disable(); // Rev lathe fix 2026-11-09: atomic against the step ISR
     bool running = _st2_stop(&motor->profile);
     hal.irq_enable();
