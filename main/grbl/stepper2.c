@@ -334,7 +334,12 @@ FLASHMEM float st2_motor_set_speed (st2_motor_t *motor, float speed)
     if(speed > max_rate)
         speed = max_rate;
 
-    return _st2_set_speed(&motor->profile, speed * (motor->profile.steps_per_mm / 60.0f));
+    // Rev lathe fix 2026-11-09: the step ISR reads and writes the same profile; change it atomically.
+    hal.irq_disable();
+    speed = _st2_set_speed(&motor->profile, speed * (motor->profile.steps_per_mm / 60.0f));
+    hal.irq_enable();
+
+    return speed;
 }
 
 /*! \brief Command a motor to move.
@@ -372,7 +377,11 @@ FLASHMEM bool st2_motor_move (st2_motor_t *motor, const float move, const float 
         return motor->profile.state == State_Idle;
     }
 
-    if(!_st2_start(&motor->profile))
+    hal.irq_disable(); // Rev lathe fix 2026-11-09: atomic against the step ISR
+    bool started = _st2_start(&motor->profile);
+    hal.irq_enable();
+
+    if(!started)
         return false;
 
     if(motor->step_inject_timer)
@@ -478,7 +487,11 @@ This will initiate deceleration to stop the motor if it is running.
 */
 FLASHMEM bool st2_motor_stop (st2_motor_t *motor)
 {
-    return _st2_stop(&motor->profile);
+    hal.irq_disable(); // Rev lathe fix 2026-11-09: atomic against the step ISR
+    bool running = _st2_stop(&motor->profile);
+    hal.irq_enable();
+
+    return running;
 }
 
 /*! \brief Check if motor is run by polling.

@@ -84,12 +84,17 @@ steps/deg. Above that, listen for stalls.
 | Crash handling | `sdkconfig.revturn_lathe` | Panic prints and reboots instead of halting, so a crash never leaves a silent, frozen machine. |
 | WiFi | `main/wifi.c` | Stock never rejoined the network after a drop (credentials wiped, retry commented out). Now retries with 1 s to 30 s backoff, closes sockets once per outage, reboots after 15 min offline only when Idle. |
 | Stepper spindle | `main/spindle/stepper.c`, `main/grbl/stepper2.c` | Rotary-mode accel / max rate units; direction-change wait yields instead of spinning. |
+| Spindle speed changes | `main/grbl/stepper2.c`, `main/grbl/stepper2.h` | Speed set, start and stop now change the step profile with interrupts held off, so the step ISR never sees it half written. Lowering the speed while the spindle is still ramping up now keeps ramping to the new speed (it used to start a deceleration aimed behind the ramp). |
 | Multi-screen | `main/networking/websocketd.c/.h` | Output copied to every WebUI client; non-owners may send reset / feed hold / jog cancel / status. |
 | WebUI server | `main/webui/server.c` | Reports the STA IP, serves the embedded `lathe.html.gz`, broadcasts the controlling client. |
 | Machine | `main/my_machine.h`, `main/boards/my_machine_map.h`, `platformio.ini`, `main/CMakeLists.txt` | Lathe pin map, PWM spindle 1, WebUI v3, LittleFS, embedded screen. |
 
-The screen itself (plain JS, 214 tests) lives in a separate repo; its built, gzipped page is
+The screen itself (plain JS, 237 tests) lives in a separate repo; its built, gzipped page is
 `main/embedded/lathe.html.gz`.
 
-## Credits
-[grblHAL](https://github.com/grblHAL) by Terje Io and contributors (GPL v3, see `README-grblHAL.md` and `COPYING`).
+## Credits and licenses
+- **Firmware:** [grblHAL](https://github.com/grblHAL) by Terje Io and contributors, GPL v3 (see `README-grblHAL.md`
+  and `COPYING`). The REVTURN changes are under the same license.
+- **Printed parts** (`hardware/`): STL, STEP and drawings by Rev. J. Money, licensed
+  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Remix them, print them, sell parts if you like;
+  credit the original and share your changes under the same license. See [`hardware/LICENSE.md`](hardware/LICENSE.md).

@@ -81,3 +81,7 @@ uses its own Z belt ratio. Use the measured steps per mm from the
 - The R9 saddle hangs 58.7 mm out on each side of the Z rails. It is stiff enough for light cuts in plastic, brass
   and aluminium; it is printed plastic, so expect flex under heavy cuts.
 - Feet have plain slots with no counterbores, so bolt heads stand about 8 mm proud: keep the motor clear of them.
+
+## License
+These printed parts (STL, STEP, drawings) are licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
+See [`LICENSE.md`](LICENSE.md).

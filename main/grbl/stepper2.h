@@ -115,20 +115,17 @@ __attribute__((always_inline)) static inline float _st2_set_speed (st2_profile_t
         debug_printf("!!: %d %.2f %.3f %d %d %d %d", profile->state, profile->prev_speed, profile->speed, profile->denom - 1, profile->n, pn, profile->denom);
 #endif
 
-        if(profile->speed > profile->prev_speed) {
-            if(profile->state == State_Accel)
-                profile->step_run += pn;
-            else {
-                profile->step_run = profile->step_no + pn;
-                profile->state = State_Accel;
-            }
-        } else {
-            if(profile->speed == 0.0f)
-                profile->state = State_Decel;
-            if(profile->state != State_Decel) {
-                profile->step_run = profile->step_no - pn;
-                profile->state = State_DecelTo;
-            }
+        // Rev lathe fix 2026-11-09: branch on where the ramp IS (pn), not on old vs new target speed.
+        // Lowering the target while still accelerating below it used to pick DecelTo with step_run
+        // behind step_no (unsigned wrap), so the spindle slowed toward zero instead of to the new speed.
+        if(profile->speed == 0.0f)
+            profile->state = State_Decel;
+        else if(pn > 0) {                                   // below the new speed: ramp up pn more steps
+            profile->step_run = profile->step_no + pn;
+            profile->state = State_Accel;
+        } else if(profile->state != State_Decel) {          // above it: ramp down -pn steps
+            profile->step_run = profile->step_no - pn;
+            profile->state = State_DecelTo;
         }
     }
 
