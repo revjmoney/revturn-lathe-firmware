@@ -25,7 +25,7 @@ sender, no cloud.
 | | |
 |---|---|
 | ![Thread cycle with preview](docs/screenshots/revturn-cycles-thread.png) **Conversational cycles**: face, turn (with chamfer / radius), bore, thread, groove, peck drill, **polygon (hex flats by X-C interpolation with the normal lathe tool)**, index. Fill in the form, GO previews the toolpath, GO again runs it. | ![RUN with live backplot](docs/screenshots/revturn-run-backplot.png) **Programs and live backplot**: chain cycles and raw g-code into a program, import Fusion lathe posts, watch the tool trace over the planned path with a live tool marker. |
-| ![Tool table and stroke limits](docs/screenshots/revturn-setup.png) **SET UP**: T1 to T8 tool table with touch-off (offsets from T1) and stored stroke limits, saved on the lathe so every screen shares them. | ![Jog](docs/screenshots/revturn-jog.png) **JOG**: step or continuous jog, respecting the stroke limits. |
+| ![Tool table and stroke limits](docs/screenshots/revturn-setup.png) **SET UP**: T1 to T8 tool table with touch-off (offsets from T1) and stored stroke limits (switched on and off with the LIMITS key, off by default), saved on the lathe so every screen shares them. | ![Jog](docs/screenshots/revturn-jog.png) **JOG**: step or continuous jog, respecting the stroke limits. |
 
 <img src="docs/screenshots/revturn-phone.png" width="260" align="right" alt="Phone layout">
 
@@ -91,7 +91,7 @@ steps/deg. Above that, listen for stalls.
 | WebUI server | `main/webui/server.c` | Reports the STA IP, serves the embedded `lathe.html.gz`, broadcasts the controlling client. |
 | Machine | `main/my_machine.h`, `main/boards/my_machine_map.h`, `platformio.ini`, `main/CMakeLists.txt` | Lathe pin map, PWM spindle 1, WebUI v3, LittleFS, embedded screen. |
 
-The screen itself (plain JS, 238 tests) lives in a separate repo; its built, gzipped page is
+The screen itself (plain JS, 244 tests) lives in a separate repo; its built, gzipped page is
 `main/embedded/lathe.html.gz`.
 
 ## Credits and licenses
