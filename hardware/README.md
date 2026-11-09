@@ -2,6 +2,7 @@
 
 The 3D-printed axis parts on the REVTURN lathe, designed from scratch in FreeCAD by Rev. J. Money and
 printed on an Ender 3 Pro. Every part ships as **STL** (to print) and **STEP** (to modify in any CAD).
+Machining parts on a rotary axis instead? See **[RotatoCAM](https://rotatocam.com)**, 4- and 3-axis CAM for DIY CNC.
 
 > **⚠ Built around parts that were laying around, so adapt before you print.**
 > - **The rails:** salvaged from a 3018 CNC upgrade and a scrapped 3D printer. The bores are sized to those exact bars:
@@ -90,3 +91,4 @@ See [`LICENSE.md`](LICENSE.md).
 
 ## Support
 These parts are free. If they saved you some design time, **[buy me a coffee](https://buymeacoffee.com/revjmoney)**.
+More from the same shop: **[RotatoCAM](https://rotatocam.com)**.

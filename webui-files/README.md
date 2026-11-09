@@ -7,3 +7,5 @@ Upload both to the root (`/`) of the lathe's flash file system (WebUI, Files pan
 - `golathe.html`: what the LATHE tab shows, one big **OPEN LATHE SCREEN** button that goes to `/lathe.html`.
 
 The lathe screen has a **WEBUI** button (top right) for the way back.
+
+Part of REVTURN, by the maker of **[RotatoCAM](https://rotatocam.com)**.

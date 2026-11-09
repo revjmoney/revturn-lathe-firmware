@@ -4,6 +4,8 @@ A mini CNC lathe running **grblHAL** on a $5 ESP32, with a **ProtoTRAK / Fanuc s
 the firmware**. Open `http://<lathe>/lathe.html` on a phone, a tablet by the machine, or a PC. No app, no
 sender, no cloud.
 
+From the maker of **[RotatoCAM](https://rotatocam.com)**: 4- and 3-axis CAM for DIY CNC. *Spin the stock. Read the signal.*
+
 [![Buy me a coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/revjmoney)
 
 ## ▶ Watch it run
@@ -47,6 +49,8 @@ chuck (C) in synced moves, nonstop spindle speed and direction changes, and a C-
   live machine in VIEW ONLY.
 - Feed / spindle / rapid overrides, DRY RUN (air cut, spindle off), alarm explain + RESET / UNLOCK.
 - Tool changes stop the program with a "CHANGE TO T2" message; GO continues.
+- Got a rotary axis on your mill too? **[RotatoCAM](https://rotatocam.com)** turns STL and STEP parts into 4-axis
+  rotary toolpaths, with a grblHAL post.
 
 <br clear="right">
 
@@ -56,6 +60,8 @@ chuck (C) in synced moves, nonstop spindle speed and direction changes, and a C-
 - ESP32 DevKit (WROOM-32), WiFi to the shop network, WebUI v3, screen served from flash.
 - The lathe screen and the stock WebUI link to each other: **WEBUI** on the lathe screen, a **LATHE** tab in the WebUI
   (upload [`webui-files/`](webui-files/) to the flash file system).
+- The chuck goes back to C zero the short way at the end of every program (grblHAL rotary wrap, `$538`) instead of
+  unwinding hundreds of turns, the same rotary problem **[RotatoCAM](https://rotatocam.com)** deals with on 4-axis mills.
 
 ## Printed parts
 The bed ends and the cross slide are 3D printed, original designs, STL + STEP in [`hardware/`](hardware/) with a parts
@@ -63,8 +69,9 @@ list, hardware list and the printing lessons learned building it.
 
 ![R9 cross slide drawings](hardware/drawings/drawings_r9.png)
 
-
 Printing a set from these files? **[Buy me a coffee](https://buymeacoffee.com/revjmoney)** ☕ it keeps the designs coming.
+Designed in FreeCAD; the rotary CAM side of the shop is **[RotatoCAM](https://rotatocam.com)**.
+
 ## Machine settings (calibrated on the real lathe)
 grblHAL stores these in flash, not in the source, so after flashing a blank board send them from the MDI or a
 serial terminal. Axis values are in mm and degrees (grblHAL's native units); the screen works in inches.
@@ -117,6 +124,8 @@ The screen itself (plain JS, 276 tests) lives in a separate repo; its built, gzi
 
 ## Support
 If REVTURN helped you or you just like watching junk turn into a lathe, you can
-**[buy me a coffee](https://buymeacoffee.com/revjmoney)**. Thank you!
+**[buy me a coffee](https://buymeacoffee.com/revjmoney)**, or check out my CAM software
+**[RotatoCAM](https://rotatocam.com)** (free Community Edition on GitHub:
+[revjmoney/RotatoCAM](https://github.com/revjmoney/RotatoCAM)). Thank you!
 
 [![Buy me a coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/revjmoney)
