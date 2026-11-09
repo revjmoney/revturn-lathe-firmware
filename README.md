@@ -59,12 +59,12 @@ serial terminal. Axis values are in mm and degrees (grblHAL's native units); the
 | Setting | Value | What it is |
 |---|---|---|
 | `$32` | 2 | Lathe mode (X in diameter, G7/G8) |
-| `$100` | 400 | X steps/mm: 16x, direct coupler, 8 mm lead (not yet verified by measurement) |
+| `$100` | 800 | X steps/mm: **measured** (X-2 on diameter moved 0.5 in real at 400, so doubled); 8 mm T8 screw |
 | `$102` | 966 | Z steps/mm: **measured** (0.99 in per commanded inch on calipers); belt to an 8 mm T8 screw |
 | `$103` | 26.667 | C steps/deg: **measured** (one commanded turn = exactly one chuck turn); 20T to 120T belt |
 | `$110` / `$112` | 1000 / 254 | X / Z max rate, mm/min (Z held to 10 in/min until its belt stops slipping) |
 | `$113` | 54000 | C max rate, deg/min = **150 rpm** chuck |
-| `$120` / `$122` / `$123` | 50 / 10 / 180 | X / Z accel (mm/s²), C accel (deg/s², about 3 s to 100 rpm) |
+| `$120` / `$122` / `$123` | 50 / 10 / 240 | X / Z accel (mm/s²), C accel (deg/s², about 2.5 s to 100 rpm) |
 | `$30` | 150 | Max spindle rpm (the screen's slider tops out here) |
 | `$340` | 10 | Spindle at-speed tolerance %: g-code waits for the stepper spindle to reach speed |
 | `$395` | 1 | Default spindle = the stepper spindle (spindle 1 is the PWM output for a live tool) |
