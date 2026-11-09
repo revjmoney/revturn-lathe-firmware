@@ -66,6 +66,7 @@ serial terminal. Axis values are in mm and degrees (grblHAL's native units); the
 | `$113` | 54000 | C max rate, deg/min = **150 rpm** chuck |
 | `$120` / `$122` / `$123` | 50 / 12 / 240 | X / Z accel (mm/s²), C accel (deg/s², about 2.5 s to 100 rpm) |
 | `$30` | 150 | Max spindle rpm (the screen's slider tops out here) |
+| `$538` | 1 | Rotary wrap for C: `G91 G28 C0` goes the short way to the stored G28 angle and resets the C count (no unwinding hundreds of turns). The screen stores G28 on ZERO C and ends every program with it |
 | `$340` | 10 | Spindle at-speed tolerance %: g-code waits for the stepper spindle to reach speed |
 | `$395` | 1 | Default spindle = the stepper spindle (spindle 1 is the PWM output for a live tool) |
 | `$677` | 7 | Stepper spindle options |
@@ -91,7 +92,7 @@ steps/deg. Above that, listen for stalls.
 | WebUI server | `main/webui/server.c` | Reports the STA IP, serves the embedded `lathe.html.gz`, broadcasts the controlling client. |
 | Machine | `main/my_machine.h`, `main/boards/my_machine_map.h`, `platformio.ini`, `main/CMakeLists.txt` | Lathe pin map, PWM spindle 1, WebUI v3, LittleFS, embedded screen. |
 
-The screen itself (plain JS, 252 tests) lives in a separate repo; its built, gzipped page is
+The screen itself (plain JS, 258 tests) lives in a separate repo; its built, gzipped page is
 `main/embedded/lathe.html.gz`.
 
 ## Credits and licenses
