@@ -168,8 +168,8 @@ typedef struct ws_sessiondata
     uint32_t hdrsize;
     websocket_on_frame_received_ptr on_txt_frame_received;
     websocket_on_frame_received_ptr on_bin_frame_received;
-    char guest_line[72];    // Rev 2026-11-10: line being collected from a non-controlling client (the pendant)
-    uint8_t guest_len;
+    char guest_line[160];   // Rev 2026-11-10: line being collected from a non-controlling client (pendant, other screens)
+    uint16_t guest_len;
     bool guest_overflow;
     bool guest;             // asked to join as a guest ("revturn-guest" in the request): never takes control from a screen
 } ws_sessiondata_t;
@@ -286,8 +286,12 @@ FLASHMEM static uint16_t streamRxFree (void)
     return (RX_BUFFER_SIZE - 1) - streamRxCount();
 }
 
+// shared control (Rev 2026-11-10): true while the controlling client has sent part of a line without its newline
+static bool owner_midline = false;
+
 FLASHMEM static void streamRxFlush (void)
 {
+    owner_midline = false;
     if(xSemaphoreTake(rx_mux, portMAX_DELAY) == pdTRUE) {
         streambuffers.rxbuf.tail = streambuffers.rxbuf.head;
         xSemaphoreGive(rx_mux);
@@ -395,16 +399,29 @@ static bool guest_line_allowed (const char *line)
     return false;
 }
 
-static void guest_line_try (const char *line)
+// Rev 2026-11-10 (shared control): every screen may drive the lathe while no program is running. A line from a
+// client that does not hold the stream is passed on when
+//  - the machine is Idle or jogging (or in Alarm, so any screen can unlock) and no file program is active,
+//  - the controlling client is not in the middle of a line (so nothing can land inside another command),
+//  - and, for a guest (the pendant), the line is on its short whitelist.
+// While a program runs these lines are dropped: other clients can only watch, hold / stop and change overrides.
+
+static void guest_line_try (ws_sessiondata_t *from, const char *line)
 {
-    if(!guest_line_allowed(line) || !(state_get() == STATE_IDLE || (state_get() & STATE_JOG)) ||   // STATE_IDLE is 0: it cannot be tested with &
-        !streambuffers.session || streambuffers.session->state != WsState_Connected)
+    sys_state_t state = state_get();
+
+    if(from->guest ? !guest_line_allowed(line) : false)
+        return;
+
+    if(!(state == STATE_IDLE || (state & STATE_JOG) || (!from->guest && (state & STATE_ALARM))) ||   // STATE_IDLE is 0
+        stream_is_file() || hal.stream.type != StreamType_WebSocket ||
+         !streambuffers.session || streambuffers.session->state != WsState_Connected)
         return;
 
     if(xSemaphoreTake(rx_mux, portMAX_DELAY) == pdTRUE) {
         size_t len = strlen(line);
         uint_fast16_t used = BUFCOUNT(streambuffers.rxbuf.head, streambuffers.rxbuf.tail, RX_BUFFER_SIZE);
-        if(used == 0 && len + 1 < RX_BUFFER_SIZE) {      // empty: no partial screen line pending
+        if(!owner_midline && used + len + 2 < RX_BUFFER_SIZE) {   // whole lines only, and only if it fits
             const char *p = line;
             while(*p) {
                 streambuffers.rxbuf.data[streambuffers.rxbuf.head] = *p++;
@@ -430,6 +447,7 @@ bool websocketd_RxPutC (char c)
                     streambuffers.rxbuf.overflow = true;                // flag overflow
                 streambuffers.rxbuf.data[streambuffers.rxbuf.head] = c; // add data to buffer
                 streambuffers.rxbuf.head = next_head;                   // and update pointer
+                owner_midline = !(c == '\n' || c == '\r');              // shared control: is a line half sent?
                 xSemaphoreGive(rx_mux);
             }
         }
@@ -911,7 +929,7 @@ FLASHMEM static uint32_t websocket_msg_parse (ws_sessiondata_t *session, uint8_t
                             else if(c == '\n' || c == '\r') {
                                 if(session->guest_len && !session->guest_overflow) {
                                     session->guest_line[session->guest_len] = '\0';
-                                    guest_line_try(session->guest_line);
+                                    guest_line_try(session, session->guest_line);
                                 }
                                 session->guest_len = 0;
                                 session->guest_overflow = false;
