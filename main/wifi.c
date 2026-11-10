@@ -78,7 +78,6 @@ static wifi_config_t wifi_sta_config;
 // (1 s doubling to 30 s), reset on GOT_IP, and as a last resort reboot after 15 min offline, only when Idle.
 #define STA_RETRY_MIN_MS 1000
 #define STA_RETRY_MAX_MS 30000
-#define STA_REBOOT_AFTER_US (15LL * 60LL * 1000000LL)
 static esp_timer_handle_t sta_retry_timer = NULL;
 static uint32_t sta_retry_ms = STA_RETRY_MIN_MS;
 static int64_t sta_down_since = 0;
@@ -393,8 +392,9 @@ static void sta_retry_cb (void *arg)
     if((xEventGroupGetBits(wifi_event_group) & CONNECTED_BIT) || *wifi_sta_config.sta.ssid == '\0')
         return;
 
-    if(sta_down_since && esp_timer_get_time() - sta_down_since > STA_REBOOT_AFTER_US && state_get() == STATE_IDLE)
-        esp_restart();
+    // Review 2026-11-10: this used to esp_restart() after 15 minutes offline when the state was Idle. Idle also
+    // covers a spindle running under M3 and pauses inside a program, and every restart loses the machine position,
+    // so the lathe no longer reboots itself. It just keeps retrying.
 
     esp_wifi_connect(); // a failure raises WIFI_EVENT_STA_DISCONNECTED again, which schedules the next try
 }

@@ -314,7 +314,10 @@ FLASHMEM static bool streamSuspendInput (bool suspend)
 // optional stop and the feed / rapid / spindle overrides, so the pendant can step or handle-drive a program.
 static bool guest_realtime_ok (uint8_t c)
 {
+    // Review 2026-11-10: the lathe screen sends the classic '!' '?' '~' bytes, not the 0x8x codes, so HOLD pressed
+    // on a VIEW ONLY screen was dropped. Accept both forms.
     return c == CMD_RESET || c == CMD_FEED_HOLD || c == CMD_JOG_CANCEL || c == CMD_STATUS_REPORT ||
+            c == CMD_FEED_HOLD_LEGACY || c == CMD_STATUS_REPORT_LEGACY || c == CMD_CYCLE_START_LEGACY ||
             c == CMD_CYCLE_START || c == CMD_SINGLE_BLOCK_TOGGLE || c == CMD_OPTIONAL_STOP_TOGGLE ||
              c == CMD_SOFT_ESTOP || (c >= CMD_OVERRIDE_FEED_RESET && c <= CMD_OVERRIDE_SPINDLE_STOP);
 }
@@ -322,29 +325,79 @@ static bool guest_realtime_ok (uint8_t c)
 // Whole lines from a guest: only jogs ($J=), work-offset set/zero (G10 L20 P0), spindle (M3 / M4 / M5 / S),
 // status-type queries ($G, $#) and only while the machine is Idle or jogging and the controlling client has
 // nothing half-sent in the input buffer, so a guest line can never land inside a screen's line or a program.
+// Review 2026-11-10: the first version only looked at the first few characters, so "S1G0X-50" or
+// "G10L20P0X0G8" passed and ran. Every allowed form is now matched to the end of the line.
+static const char *guest_number (const char *p)     // [+-]digits[.digits]; returns the end, or NULL
+{
+    bool digits = false;
+
+    if(*p == '+' || *p == '-')
+        p++;
+    while(*p >= '0' && *p <= '9') { p++; digits = true; }
+    if(*p == '.') {
+        p++;
+        while(*p >= '0' && *p <= '9') { p++; digits = true; }
+    }
+
+    return digits ? p : NULL;
+}
+
 static bool guest_line_allowed (const char *line)
 {
     char n[72];
+    const char *p;
     uint_fast8_t k = 0;
 
     for(; *line && k < sizeof(n) - 1; line++) {   // uppercase, no spaces
         if(*line != ' ')
             n[k++] = (*line >= 'a' && *line <= 'z') ? *line - 32 : *line;
     }
+    if(*line)
+        return false;                             // longer than the buffer: refuse, never judge a cut-off line
     n[k] = '\0';
 
-    bool setting_query = n[0] == '$' && n[1] >= '0' && n[1] <= '9';  // "$30": read one setting (never "$30=...")
-    for(uint_fast8_t q = 1; setting_query && n[q]; q++)
-        setting_query = n[q] >= '0' && n[q] <= '9';
+    if(!strcmp(n, "$G") || !strcmp(n, "$#"))
+        return true;
 
-    return setting_query || !strncmp(n, "$J=", 3) || !strncmp(n, "G10L20P0", 8) || !strcmp(n, "$G") || !strcmp(n, "$#") ||
-            ((n[0] == 'M' && (n[1] == '3' || n[1] == '4' || n[1] == '5') && (n[2] == '\0' || n[2] == 'S')) ||
-             (n[0] == 'S' && n[1] >= '0' && n[1] <= '9'));
+    if(n[0] == '$' && n[1] >= '0' && n[1] <= '9') {  // "$30": read one setting (never "$30=...")
+        for(p = n + 1; *p >= '0' && *p <= '9'; p++);
+        return *p == '\0';
+    }
+
+    if(!strncmp(n, "$J=", 3)) {                   // jog: grbl itself limits the words; keep the characters plain
+        for(p = n + 3; *p; p++) {
+            if(!((*p >= 'A' && *p <= 'Z') || (*p >= '0' && *p <= '9') || *p == '.' || *p == '-' || *p == '+'))
+                return false;
+        }
+        return p > n + 3;
+    }
+
+    if(!strncmp(n, "G10L20P0", 8)) {              // set / zero the active work offset: axis words only
+        p = n + 8;
+        if(*p == '\0')
+            return false;
+        while(*p) {
+            if(!(*p == 'X' || *p == 'Y' || *p == 'Z' || *p == 'A' || *p == 'B' || *p == 'C') || !(p = guest_number(p + 1)))
+                return false;
+        }
+        return true;
+    }
+
+    p = n;
+    if(p[0] == 'M' && (p[1] == '3' || p[1] == '4' || p[1] == '5')) {   // M3 / M4 / M5, optionally with S
+        p += 2;
+        if(*p == '\0')
+            return true;
+    }
+    if(*p == 'S' && (p = guest_number(p + 1)))    // S<rpm>, alone or after M3 / M4 / M5
+        return *p == '\0';
+
+    return false;
 }
 
 static void guest_line_try (const char *line)
 {
-    if(!guest_line_allowed(line) || !(state_get() & (STATE_IDLE|STATE_JOG)) ||
+    if(!guest_line_allowed(line) || !(state_get() == STATE_IDLE || (state_get() & STATE_JOG)) ||   // STATE_IDLE is 0: it cannot be tested with &
         !streambuffers.session || streambuffers.session->state != WsState_Connected)
         return;
 
@@ -844,8 +897,17 @@ FLASHMEM static uint32_t websocket_msg_parse (ws_sessiondata_t *session, uint8_t
                         uint_fast16_t i = session->header.rx_index, n = payload_len;
                         while(n--) {
                             uint8_t c = *payload++ ^ mask[i++ % 4];
-                            if(guest_realtime_ok(c))
+                            if(guest_realtime_ok(c)) {
+                                // Review 2026-11-10: grbl only acts on the classic '!' '?' '~' depending on a
+                                // setting and on what the controlling client is typing; the 0x8x codes always work.
+                                if(c == CMD_FEED_HOLD_LEGACY)
+                                    c = CMD_FEED_HOLD;
+                                else if(c == CMD_STATUS_REPORT_LEGACY)
+                                    c = CMD_STATUS_REPORT;
+                                else if(c == CMD_CYCLE_START_LEGACY)
+                                    c = CMD_CYCLE_START;
                                 enqueue_realtime_command(c);
+                            }
                             else if(c == '\n' || c == '\r') {
                                 if(session->guest_len && !session->guest_overflow) {
                                     session->guest_line[session->guest_len] = '\0';
@@ -1082,15 +1144,34 @@ FLASHMEM bool websocket_claim_stream (websocket_t *websocket)
             // Guests (the pendant) never take over; a running job stays with the screen that started it.
             if(hal.stream.type == StreamType_WebSocket && session->stream_state.connected && !session->guest &&
                 streambuffers.session && streambuffers.session != session &&
-                 (state_get() & (STATE_IDLE|STATE_ALARM|STATE_ESTOP|STATE_SLEEP|STATE_CHECK_MODE))) {
-                streambuffers.session->stream = NULL;
+                 (state_get() == STATE_IDLE ||     // STATE_IDLE is 0: it cannot be tested with &
+                   (state_get() & (STATE_ALARM|STATE_ESTOP|STATE_SLEEP|STATE_CHECK_MODE)))) {
+                if(streambuffers.session->stream == stream) {
+                    // same kind of client (screen to screen): the grbl side keeps using the same stream object
+                    streambuffers.session->stream = NULL;
+                    session->stream = stream;
+                    streambuffers.session = session;
+                    streamRxFlush(); // nothing half-sent by the old owner may join the new owner's lines
+                    streamTxFlush(); // output queued for the old owner is dropped
+                    return true;
+                }
+                // Review 2026-11-10: a plain websocket client and a WebUI client use two different stream objects.
+                // Swapping only the pointers left grbl attached to the old one; when the new owner then closed,
+                // nothing could claim the stream again until a reboot. A client of a different kind therefore
+                // never takes over: it stays a viewer until the owner leaves.
+                return false;
+            } else if(hal.stream.type == StreamType_WebSocket && streambuffers.session == NULL &&
+                       session->stream_state.connected) {
+                // Review 2026-11-10: grbl is still on the websocket stream but no session owns it (should not
+                // happen any more): adopt it so output drains and the screen gets control, never a dead end.
                 session->stream = stream;
                 streambuffers.session = session;
-                streamRxFlush(); // nothing half-sent by the old owner may join the new owner's lines
-                streamTxFlush(); // output queued for the old owner is dropped
+                ws_streams[0].state.connected = true;
+                streamRxFlush();
+                streamTxFlush();
                 return true;
-            }
-            return session->stream != NULL;
+            } else
+                return session->stream != NULL;
         }
 
         stream_connect(stream);
