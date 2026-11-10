@@ -1093,7 +1093,9 @@ FLASHMEM static err_t websocket_recv (void *arg, struct tcp_pcb *pcb, struct pbu
             taken += processed;
             len -= processed;
 
-            if(streambuffers.rxbuf.overflow)
+            // Review 2026-11-10: only the controlling client fills the input buffer. Pausing another client's input
+            // on that flag parked its packet forever (it is only resumed for the owner): its HOLD bytes were lost.
+            if(streambuffers.rxbuf.overflow && session == streambuffers.session)
                 break;
 
             if(len == 0 && (q = q->next)) {

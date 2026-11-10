@@ -143,7 +143,12 @@ static void spindleSetState (spindle_ptrs_t *spindle, spindle_state_t state, flo
                 		onExecuteRealtime(state_get());
                 	else
                 		vTaskDelay(1); // Rev: yield instead of a hard spin on the grbl core while the spindle stops
+                	// Review 2026-11-10: a reversal at 275 rpm takes seconds; reset, hold and status must keep working
+                	if(!protocol_execute_realtime() || sys.abort)
+                		break;
                 }
+                if(sys.abort)
+                	return; // reset while reversing: the reset path stops the spindle, never restart it here
                 st2_motor_move(motor, state.ccw ? -1.0f : 1.0f, rpm, Stepper2_InfiniteSteps);
             } else
                 st2_motor_set_speed(motor, rpm);

@@ -123,7 +123,9 @@ __attribute__((always_inline)) static inline float _st2_set_speed (st2_profile_t
         else if(pn > 0) {                                   // below the new speed: ramp up pn more steps
             profile->step_run = profile->step_no + pn;
             profile->state = State_Accel;
-        } else if(profile->state != State_Decel) {          // above it: ramp down -pn steps
+        } else {                                            // above it: ramp down -pn steps
+            // Review 2026-11-10: also while already stopping (State_Decel after M5): "M5 then M3 S100" before the
+            // spindle had slowed below 100 rpm used to coast to a stop while the spindle was reported On.
             profile->step_run = profile->step_no - pn;
             profile->state = State_DecelTo;
         }
