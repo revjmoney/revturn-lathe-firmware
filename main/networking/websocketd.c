@@ -1075,8 +1075,23 @@ FLASHMEM bool websocket_claim_stream (websocket_t *websocket)
         session->magic == WEBSOCKETD_MAGIC &&
          (stream = session->stream_state.webui_connected ? claim_webui_stream(0) : claim_stream(0))) {
 
-        if(hal.stream.type == StreamType_WebSocket || !session->stream_state.connected)
+        if(hal.stream.type == StreamType_WebSocket || !session->stream_state.connected) {
+            // Rev 2026-11-10: the newest screen takes control while the machine is not busy. Stock code kept the
+            // FIRST screen forever, so a forgotten background tab that stopped reading held the stream: its output
+            // backed up, the copies to VIEW ONLY screens stopped too, and every other screen reconnected each 3.6 s.
+            // Guests (the pendant) never take over; a running job stays with the screen that started it.
+            if(hal.stream.type == StreamType_WebSocket && session->stream_state.connected && !session->guest &&
+                streambuffers.session && streambuffers.session != session &&
+                 (state_get() & (STATE_IDLE|STATE_ALARM|STATE_ESTOP|STATE_SLEEP|STATE_CHECK_MODE))) {
+                streambuffers.session->stream = NULL;
+                session->stream = stream;
+                streambuffers.session = session;
+                streamRxFlush(); // nothing half-sent by the old owner may join the new owner's lines
+                streamTxFlush(); // output queued for the old owner is dropped
+                return true;
+            }
             return session->stream != NULL;
+        }
 
         stream_connect(stream);
 
