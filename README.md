@@ -114,7 +114,7 @@ go to 4x (6.667) or a 48 V driver like a DM542 for more.
 | WebUI server | `main/webui/server.c` | Reports the STA IP, serves the embedded `lathe.html.gz`, broadcasts the controlling client. |
 | Machine | `main/my_machine.h`, `main/boards/my_machine_map.h`, `platformio.ini`, `main/CMakeLists.txt` | Lathe pin map, PWM spindle 1, WebUI v3, LittleFS, embedded screen. |
 
-The screen itself (plain JS, 280 tests) lives in a separate repo; its built, gzipped page is
+The screen itself (plain JS, 283 tests) lives in a separate repo; its built, gzipped page is
 `main/embedded/lathe.html.gz`.
 
 ## Credits and licenses
