@@ -40,17 +40,11 @@
 #define Y_LIMIT_PIN             GPIO_NUM_33
 #define Z_LIMIT_PIN             GPIO_NUM_27
 
+// Rev 2026-11-10: probe and E-stop inputs REMOVED. With them on GPIO 14/13 (aux inputs) the WiFi crawled
+// (300-1500 ms ping, 10-40% loss, 15 s page loads, even with zero clients). Without them: 7 ms, 0% loss.
+// Pick other pins and re-test the WiFi when the probe / E-stop are actually wired.
 #undef CONTROL_ENABLE
-#define CONTROL_ENABLE CONTROL_HALT // Rev 2026-11-10: E-stop input only (reset pin works as E-stop)
-// Probe and E-stop go through grblHAL aux inputs (claimed by function, like the bdring maps).
-#define AUXINPUT0_PIN           GPIO_NUM_14 // probe / tool setter to GND, internal pull-up: unwired = not triggered
-#define AUXINPUT1_PIN           GPIO_NUM_13 // E-stop to GND, internal pull-up: unwired = not pressed ("default off")
-#if PROBE_ENABLE
-#define PROBE_PIN               AUXINPUT0_PIN
-#endif
-#if CONTROL_ENABLE & CONTROL_HALT
-#define RESET_PIN               AUXINPUT1_PIN
-#endif
+#define CONTROL_ENABLE 0
 // The jog wheel is the separate Cricut Salvage Pendant ESP32 over WiFi: no lathe pins needed.
 
 // --- Added 2026-11-08: PWM spindle (spindle 1, for a router / live tool) and the OLED. ---

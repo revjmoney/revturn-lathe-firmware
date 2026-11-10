@@ -91,7 +91,7 @@ serial terminal. Axis values are in mm and degrees (grblHAL's native units); the
 | `$395` | 1 | Default spindle = the stepper spindle (spindle 1 is the PWM output for a live tool) |
 | `$677` | 7 | Stepper spindle options |
 | `$2` / `$3` / `$5` | 5 / 1 / 7 | Step invert (TB6600 common anode), direction invert, limit invert |
-| `$6` / `$14` | 1 / 64 | Probe invert and E-stop invert (bit 6), so the unwired probe (GPIO 14) and E-stop (GPIO 13) inputs read "off". Wire a normally-closed E-stop to GND, then set `$14=0` (fail-safe) |
+| `$6` / `$14` | 1 / 64 | Left over from the probe and E-stop inputs, which are **removed for now**: on GPIO 14/13 they made the WiFi crawl (300 to 1500 ms ping). They come back on other pins once they are wired, with a WiFi re-test |
 | `$320` | revturn | Hostname: the screen is also at `http://revturn.local/lathe.html` (mDNS) |
 
 Limits worth knowing: a TB6600 is rated to about 20 kHz of step pulses. At 16x (26.667 steps/deg) that is about 125
@@ -114,7 +114,7 @@ go to 4x (6.667) or a 48 V driver like a DM542 for more.
 | Spindle speed changes | `main/grbl/stepper2.c`, `main/grbl/stepper2.h` | Speed set, start and stop now change the step profile with interrupts held off, so the step ISR never sees it half written. Lowering the speed while the spindle is still ramping up now keeps ramping to the new speed (it used to start a deceleration aimed behind the ramp). |
 | Multi-screen | `main/networking/websocketd.c/.h` | Output copied to every WebUI client; non-owners may send reset / feed hold / jog cancel / status. |
 | Pendant guest | `main/networking/websocketd.c` | A client that connects with `revturn-guest` never takes control from a screen (it does when no client has the stream). Guests may also send cycle start, single block, optional stop and the feed / rapid / spindle overrides (handle-driven program stepping), and whole jog (`$J=`), zero/set (`G10 L20 P0`), spindle (`M3`/`M4`/`M5`/`S`) and query (`$G`, `$#`, `$30`) lines while the lathe is Idle or jogging and the screen has nothing half-sent. |
-| Build options | `main/CMakeLists.txt`, `main/boards/my_machine_map.h`, `main/grbl/gcode.c` | g-code expressions (`#` variables, `[math]`, SIN/COS/SQRT..., O-word loops and subroutines, `G65 P6`), jerk-limited motion, acceleration profiles, backlash compensation, tool nose radius comp (G41/G42, parenthesis fix for `-Werror`), mDNS, probe and E-stop inputs. **Turning these on resets all stored settings**: write your settings down first. |
+| Build options | `main/CMakeLists.txt`, `main/boards/my_machine_map.h`, `main/grbl/gcode.c` | g-code expressions (`#` variables, `[math]`, SIN/COS/SQRT..., O-word loops and subroutines, `G65 P6`), jerk-limited motion, acceleration profiles, backlash compensation, tool nose radius comp (G41/G42, parenthesis fix for `-Werror`), mDNS. **Turning these on resets all stored settings**: write your settings down first. |
 | WebUI server | `main/webui/server.c` | Reports the STA IP, serves the embedded `lathe.html.gz`, broadcasts the controlling client. |
 | Machine | `main/my_machine.h`, `main/boards/my_machine_map.h`, `platformio.ini`, `main/CMakeLists.txt` | Lathe pin map, PWM spindle 1, WebUI v3, LittleFS, embedded screen. |
 

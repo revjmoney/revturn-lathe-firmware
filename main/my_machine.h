@@ -53,7 +53,7 @@
 
 // --- Rev's mini lathe (REVTURN ESP32): axis count, C letter, lathe mode and polarity are in
 // main/CMakeLists.txt, because the grbl core files do not include this header.
-#define PROBE_ENABLE            1      // Rev 2026-11-10: probe input on GPIO 14 (pulled up: unwired = not triggered)
+#define PROBE_ENABLE            0      // Rev 2026-11-10: probe input on GPIO 14 (pulled up: unwired = not triggered)
 #define WEBUI_INFLASH           1      // Rev 2026-11-08: serve the embedded index.html.gz, no upload step
 //#define I2C_ENABLE            1      // Rev 2026-11-08: OLED removed (module dead); code kept in rev-patches/retired/oled_my_plugin.c
 
