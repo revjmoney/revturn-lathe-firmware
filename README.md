@@ -83,9 +83,9 @@ serial terminal. Axis values are in mm and degrees (grblHAL's native units); the
 | `$102` | 966 | Z steps/mm: **measured** (0.99 in per commanded inch on calipers); belt to an 8 mm T8 screw |
 | `$103` | 13.333 | C steps/deg: C driver at **8x** microstepping (26.667 at 16x, measured: one commanded turn = exactly one chuck turn); 20T to 120T belt |
 | `$110` / `$112` | 1300 / 914.4 | X / Z max rate, mm/min (X 51 in/min; Z **36 in/min**, Rev's pick with Z at 4x microstepping) |
-| `$113` | 72000 | C max rate, deg/min = **200 rpm** chuck (rpm x 360) |
+| `$113` | 99000 | C max rate, deg/min = **275 rpm** chuck (rpm x 360) |
 | `$120` / `$122` / `$123` | 50 / 12 / 240 | X / Z accel (mm/s²), C accel (deg/s², about 2.5 s to 100 rpm) |
-| `$30` | 200 | Max spindle rpm (the screen's slider tops out here) |
+| `$30` | 275 | Max spindle rpm (the screen's slider tops out here; the stepper spindle is also capped by `$113`) |
 | `$538` | 1 | Rotary wrap for C: `G91 G28 C0` goes the short way to the stored G28 angle and resets the C count (no unwinding hundreds of turns). The screen stores G28 on ZERO C and ends every program with it |
 | `$340` | 10 | Spindle at-speed tolerance %: g-code waits for the stepper spindle to reach speed |
 | `$395` | 1 | Default spindle = the stepper spindle (spindle 1 is the PWM output for a live tool) |
@@ -93,7 +93,7 @@ serial terminal. Axis values are in mm and degrees (grblHAL's native units); the
 | `$2` / `$3` / `$5` | 5 / 1 / 7 | Step invert (TB6600 common anode), direction invert, limit invert |
 
 Limits worth knowing: a TB6600 is rated to about 20 kHz of step pulses. At 16x (26.667 steps/deg) that is about 125
-chuck rpm; at 8x (13.333) about 250. On this lathe the chuck runs 250 but 200 sounds healthier, so 200 is the max.
+chuck rpm; at 8x (13.333) about 250. On this lathe the chuck runs 275 fine at 8x (a little over the driver's rating, so 4x is the fallback if it ever skips).
 Past that the NEMA 23 (6:1, so 1200 motor rpm at 200 chuck rpm) runs out of torque before the driver runs out of steps;
 go to 4x (6.667) or a 48 V driver like a DM542 for more.
 
