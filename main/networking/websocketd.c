@@ -53,6 +53,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "grbl/grbl.h"
 #include "grbl/protocol.h"
 #include "grbl/strutils.h"
+#include "grbl/state_machine.h" // Rev 2026-11-10: state_get() for guest lines
 
 //#define WSDEBUG
 
@@ -167,6 +168,10 @@ typedef struct ws_sessiondata
     uint32_t hdrsize;
     websocket_on_frame_received_ptr on_txt_frame_received;
     websocket_on_frame_received_ptr on_bin_frame_received;
+    char guest_line[72];    // Rev 2026-11-10: line being collected from a non-controlling client (the pendant)
+    uint8_t guest_len;
+    bool guest_overflow;
+    bool guest;             // asked to join as a guest ("revturn-guest" in the request): never takes control from a screen
 } ws_sessiondata_t;
 
 typedef struct {
@@ -302,6 +307,61 @@ FLASHMEM static void websocketd_RxCancel (void)
 FLASHMEM static bool streamSuspendInput (bool suspend)
 {
     return stream_rx_suspend(&streambuffers.rxbuf, suspend);
+}
+
+// Rev 2026-11-10: what a non-controlling client (guest: the jog-wheel pendant, a second screen) may do.
+// Realtime: reset / soft E-stop, feed hold, jog cancel, status (E-stop principle) plus cycle start, single block,
+// optional stop and the feed / rapid / spindle overrides, so the pendant can step or handle-drive a program.
+static bool guest_realtime_ok (uint8_t c)
+{
+    return c == CMD_RESET || c == CMD_FEED_HOLD || c == CMD_JOG_CANCEL || c == CMD_STATUS_REPORT ||
+            c == CMD_CYCLE_START || c == CMD_SINGLE_BLOCK_TOGGLE || c == CMD_OPTIONAL_STOP_TOGGLE ||
+             c == CMD_SOFT_ESTOP || (c >= CMD_OVERRIDE_FEED_RESET && c <= CMD_OVERRIDE_SPINDLE_STOP);
+}
+
+// Whole lines from a guest: only jogs ($J=), work-offset set/zero (G10 L20 P0), spindle (M3 / M4 / M5 / S),
+// status-type queries ($G, $#) and only while the machine is Idle or jogging and the controlling client has
+// nothing half-sent in the input buffer, so a guest line can never land inside a screen's line or a program.
+static bool guest_line_allowed (const char *line)
+{
+    char n[72];
+    uint_fast8_t k = 0;
+
+    for(; *line && k < sizeof(n) - 1; line++) {   // uppercase, no spaces
+        if(*line != ' ')
+            n[k++] = (*line >= 'a' && *line <= 'z') ? *line - 32 : *line;
+    }
+    n[k] = '\0';
+
+    bool setting_query = n[0] == '$' && n[1] >= '0' && n[1] <= '9';  // "$30": read one setting (never "$30=...")
+    for(uint_fast8_t q = 1; setting_query && n[q]; q++)
+        setting_query = n[q] >= '0' && n[q] <= '9';
+
+    return setting_query || !strncmp(n, "$J=", 3) || !strncmp(n, "G10L20P0", 8) || !strcmp(n, "$G") || !strcmp(n, "$#") ||
+            ((n[0] == 'M' && (n[1] == '3' || n[1] == '4' || n[1] == '5') && (n[2] == '\0' || n[2] == 'S')) ||
+             (n[0] == 'S' && n[1] >= '0' && n[1] <= '9'));
+}
+
+static void guest_line_try (const char *line)
+{
+    if(!guest_line_allowed(line) || !(state_get() & (STATE_IDLE|STATE_JOG)) ||
+        !streambuffers.session || streambuffers.session->state != WsState_Connected)
+        return;
+
+    if(xSemaphoreTake(rx_mux, portMAX_DELAY) == pdTRUE) {
+        size_t len = strlen(line);
+        uint_fast16_t used = BUFCOUNT(streambuffers.rxbuf.head, streambuffers.rxbuf.tail, RX_BUFFER_SIZE);
+        if(used == 0 && len + 1 < RX_BUFFER_SIZE) {      // empty: no partial screen line pending
+            const char *p = line;
+            while(*p) {
+                streambuffers.rxbuf.data[streambuffers.rxbuf.head] = *p++;
+                streambuffers.rxbuf.head = BUFNEXT(streambuffers.rxbuf.head, streambuffers.rxbuf);
+            }
+            streambuffers.rxbuf.data[streambuffers.rxbuf.head] = '\n';
+            streambuffers.rxbuf.head = BUFNEXT(streambuffers.rxbuf.head, streambuffers.rxbuf);
+        }
+        xSemaphoreGive(rx_mux);
+    }
 }
 
 bool websocketd_RxPutC (char c)
@@ -778,11 +838,27 @@ FLASHMEM static uint32_t websocket_msg_parse (ws_sessiondata_t *session, uint8_t
 
                     } else { // Not the controlling client: sink payload, but act on safety realtime bytes
                         // Rev 2026-11-08: E-stop principle, any screen can reset, hold or cancel a jog.
+                        // Rev 2026-11-10: a guest (the jog-wheel pendant) may also send cycle start, overrides and
+                        // single block (handle-driven program stepping), and whole whitelisted lines (jog, zero/set,
+                        // spindle) while the machine is Idle or jogging. See guest_realtime_ok / guest_line_try.
                         uint_fast16_t i = session->header.rx_index, n = payload_len;
                         while(n--) {
                             uint8_t c = *payload++ ^ mask[i++ % 4];
-                            if(c == CMD_RESET || c == CMD_FEED_HOLD || c == CMD_JOG_CANCEL || c == CMD_STATUS_REPORT)
+                            if(guest_realtime_ok(c))
                                 enqueue_realtime_command(c);
+                            else if(c == '\n' || c == '\r') {
+                                if(session->guest_len && !session->guest_overflow) {
+                                    session->guest_line[session->guest_len] = '\0';
+                                    guest_line_try(session->guest_line);
+                                }
+                                session->guest_len = 0;
+                                session->guest_overflow = false;
+                            } else if(c >= ' ' && c < 0x7F) {
+                                if(session->guest_len < sizeof(session->guest_line) - 1)
+                                    session->guest_line[session->guest_len++] = c;
+                                else
+                                    session->guest_overflow = true; // too long: drop the whole line
+                            }
                         }
                         session->header.rx_index = i;
                         plen -= payload_len; // keep the rest of the TCP segment (a following frame), Rev 2026-11-08
@@ -1088,6 +1164,9 @@ FLASHMEM static err_t http_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p,
 
         char c = '\r', *argp, *argend, *protocols = NULL, *protocol = NULL;
 
+        // Rev 2026-11-10: the jog-wheel pendant connects with "revturn-guest" in its request (path or protocol list)
+        session->guest = stristr(session->http_request, "revturn-guest") != NULL;
+
         if((argend = stristr(session->http_request, WS_PROT))) {
 
             argp = argend + sizeof(WS_PROT) - 1;
@@ -1209,7 +1288,8 @@ FLASHMEM static err_t http_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p,
             if(websocket.on_client_connect)
                 websocket.on_client_connect(session);
 
-            if(session->stream_state.connected)
+            // a guest only takes the stream when no client has it (Rev 2026-11-10)
+            if(session->stream_state.connected && (!session->guest || streambuffers.session == NULL))
                 websocket_claim_stream(session);
 
         } else

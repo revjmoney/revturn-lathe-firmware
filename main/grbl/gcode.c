@@ -2913,7 +2913,7 @@ status_code_t gc_execute_block (char *block)
             gc_block.words.d = Off;
         }
 
-        if(gc_state.ccomp_off = gc_state.modal.cutter_comp.side && !gc_block.modal.cutter_comp.side)
+        if((gc_state.ccomp_off = (gc_state.modal.cutter_comp.side && !gc_block.modal.cutter_comp.side))) // Rev: parens for -Werror=parentheses, same logic
             gc_block.modal.cutter_comp.dynamic = false;
     }
 

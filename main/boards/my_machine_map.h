@@ -41,7 +41,17 @@
 #define Z_LIMIT_PIN             GPIO_NUM_27
 
 #undef CONTROL_ENABLE
-#define CONTROL_ENABLE 0 // No reset / feed hold / cycle start buttons wired
+#define CONTROL_ENABLE CONTROL_HALT // Rev 2026-11-10: E-stop input only (reset pin works as E-stop)
+// Probe and E-stop go through grblHAL aux inputs (claimed by function, like the bdring maps).
+#define AUXINPUT0_PIN           GPIO_NUM_14 // probe / tool setter to GND, internal pull-up: unwired = not triggered
+#define AUXINPUT1_PIN           GPIO_NUM_13 // E-stop to GND, internal pull-up: unwired = not pressed ("default off")
+#if PROBE_ENABLE
+#define PROBE_PIN               AUXINPUT0_PIN
+#endif
+#if CONTROL_ENABLE & CONTROL_HALT
+#define RESET_PIN               AUXINPUT1_PIN
+#endif
+// The jog wheel is the separate Cricut Salvage Pendant ESP32 over WiFi: no lathe pins needed.
 
 // --- Added 2026-11-08: PWM spindle (spindle 1, for a router / live tool) and the OLED. ---
 // Free, output-capable, non-strapping pins on the DevKit (34-39 are input only, 0/2/12/15 strap,

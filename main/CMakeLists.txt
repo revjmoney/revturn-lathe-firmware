@@ -303,6 +303,14 @@ target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_STEP_SIGNALS_INVERT
 target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_DIR_SIGNALS_INVERT_MASK=1)
 target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_ENABLE_SIGNALS_INVERT_MASK=0)
 target_compile_definitions("${COMPONENT_LIB}" PUBLIC DEFAULT_STEP_PULSE_MICROSECONDS=5.0f)
+# Rev 2026-11-10: g-code expressions (#vars, [math], SIN COS SQRT..., O-word loops / subs, G65 P6),
+# jerk-limited (S-curve) motion, g-code acceleration profiles, backlash compensation, tool nose radius comp (G41/G42), mDNS.
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC NGC_EXPRESSIONS_ENABLE=1)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC ENABLE_JERK_ACCELERATION=1)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC ENABLE_ACCELERATION_PROFILES=1)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC ENABLE_BACKLASH_COMPENSATION=1)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC CUTTER_COMP_ENABLE=1)
+target_compile_definitions("${COMPONENT_LIB}" PUBLIC MDNS_ENABLE=1)
 
 if(BOARD_BLACKBOX_X32)
 target_compile_definitions("${COMPONENT_LIB}" PUBLIC BOARD_BLACKBOX_X32)
