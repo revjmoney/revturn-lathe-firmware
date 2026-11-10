@@ -82,7 +82,7 @@ serial terminal. Axis values are in mm and degrees (grblHAL's native units); the
 | `$100` | 800 | X steps/mm: **measured** (X-2 on diameter moved 0.5 in real at 400, so doubled); 8 mm T8 screw |
 | `$102` | 966 | Z steps/mm: **measured** (0.99 in per commanded inch on calipers); belt to an 8 mm T8 screw |
 | `$103` | 13.333 | C steps/deg: C driver at **8x** microstepping (26.667 at 16x, measured: one commanded turn = exactly one chuck turn); 20T to 120T belt |
-| `$110` / `$112` | 1300 / 380 | X / Z max rate, mm/min (X 51 in/min, about 17 kHz of steps at 800 steps/mm; Z 15 in/min, raised once the belt stopped slipping) |
+| `$110` / `$112` | 1300 / 914.4 | X / Z max rate, mm/min (X 51 in/min; Z **36 in/min**, Rev's pick with Z at 4x microstepping) |
 | `$113` | 72000 | C max rate, deg/min = **200 rpm** chuck (rpm x 360) |
 | `$120` / `$122` / `$123` | 50 / 12 / 240 | X / Z accel (mm/s²), C accel (deg/s², about 2.5 s to 100 rpm) |
 | `$30` | 200 | Max spindle rpm (the screen's slider tops out here) |
