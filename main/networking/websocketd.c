@@ -174,6 +174,7 @@ typedef struct ws_sessiondata
     bool guest;             // asked to join as a guest ("revturn-guest" in the request): never takes control from a screen
     bool guest_driving;     // review 2026-11-10: this guest sent cycle start (handle mode): the dead-man below applies
     TickType_t guest_rx;    // when this guest last sent anything (the pendant polls status every 200 ms)
+    uint32_t http_ptr;      // review 2026-11-10: handshake write position, per connection (was one static for all)
 } ws_sessiondata_t;
 
 typedef struct {
@@ -865,7 +866,7 @@ FLASHMEM static uint32_t websocket_msg_parse (ws_sessiondata_t *session, uint8_t
                     if((session->collect_payload = frame_done = plen >= session->header.payload_len))
                         session->payload = payload;
                     else
-                        session->collect_payload = session->header.payload_len > 0 && (session->payload = malloc(session->header.payload_len + is_binary ? 0 : 1)) != NULL;
+                        session->collect_payload = session->header.payload_len > 0 && (session->payload = malloc(session->header.payload_len + (is_binary ? 0 : 1))) != NULL; // review 2026-11-10: was (len + is_binary) ? 0 : 1, a 0 / 1 byte buffer
                         //TODO: handle malloc failure?
                 }
 
@@ -917,7 +918,9 @@ FLASHMEM static uint32_t websocket_msg_parse (ws_sessiondata_t *session, uint8_t
                                 session->payload = NULL;
                             }
                         }
-                    } else if(session == streambuffers.session && session->stream_state.connected) { // Unmask and push into RX buffer on the go
+                    } else if(session == streambuffers.session && session->stream_state.connected && !session->guest) { // Unmask and push into RX buffer on the go
+                        // review 2026-11-10: "&& !session->guest": with no screen connected the pendant holds the
+                        // stream; its input still goes through the guest whitelist below, never straight to grbl
 
                         uint_fast16_t i = session->header.rx_index;
 
@@ -1242,8 +1245,6 @@ FLASHMEM bool websocket_claim_stream (websocket_t *websocket)
 //
 FLASHMEM static err_t http_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p, err_t err)
 {
-    static uint32_t ptr = 0;
-
     ws_sessiondata_t *session = arg;
 
     bool hdr_ok;
@@ -1261,7 +1262,7 @@ FLASHMEM static err_t http_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p,
     }
 
     if(session->http_request == NULL) {
-        ptr = 0;
+        session->http_ptr = 0;
         if((session->http_request = malloc(session->hdrsize)) == NULL) {
             http_write_error(session, HTTP_500);
             return ERR_MEM;
@@ -1272,7 +1273,7 @@ FLASHMEM static err_t http_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p,
     uint8_t *payload = q->payload;
     uint_fast16_t len = q->len;
 
-    uint32_t hdrsize = session->hdrsize - 1;
+    uint32_t hdrsize = session->hdrsize - 1, ptr = session->http_ptr;
 
     // 1. Process input
 
@@ -1299,6 +1300,7 @@ FLASHMEM static err_t http_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p,
     tcp_recved(session->pcb, p->tot_len);
     pbuf_free(p);
 
+    session->http_ptr = ptr;
     session->http_request[ptr] = '\0';
 
     if((hdr_ok = strstr(session->http_request, CRLF CRLF))) {
@@ -1383,6 +1385,15 @@ FLASHMEM static err_t http_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p,
                 // Copy base response header to response buffer
                 char *response = memcpy(rsp /*session->http_request*/, WS_RSP, sizeof(WS_RSP) - 1);
 
+                // Review 2026-11-10: the key is 24 base64 characters; a longer one used to overflow key[64]
+                if(strlen(argp) + sizeof(WS_GUID) > sizeof(key)) {
+                    *argend = c;
+                    goto bad_key;
+                }
+                // a protocol name that does not fit the response is not echoed (rsp[200] had no check)
+                if(protocol && (sizeof(WS_RSP) - 1) + 30 + sizeof(CRLF) + (sizeof(WS_PROT) - 1) + strlen(protocol) + sizeof(CRLF CRLF) > sizeof(rsp))
+                    protocol = NULL;
+
                 // Concatenate keys
                 strcpy(key, argp);
                 strcat(key, WS_GUID);
@@ -1418,6 +1429,7 @@ FLASHMEM static err_t http_recv (void *arg, struct tcp_pcb *pcb, struct pbuf *p,
                 }
             }
         }
+bad_key:
 
         free(session->http_request);
         if(protocols)

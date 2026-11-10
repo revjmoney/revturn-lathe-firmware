@@ -51,7 +51,10 @@
 // Free, output-capable, non-strapping pins on the DevKit (34-39 are input only, 0/2/12/15 strap,
 // 6-11 are flash, 25 was surge damaged on the old iCraft board). REV: check these on your headers.
 #define AUXOUTPUT0_PIN          GPIO_NUM_4  // PWM spindle PWM (D23/D22/D4/3V3 row)
-#define AUXOUTPUT1_PIN          GPIO_NUM_5  // PWM spindle enable (strap pin, fine as an output)
+#define AUXOUTPUT1_PIN          GPIO_NUM_13 // PWM spindle enable. Review 2026-11-10: was GPIO5, a strapping pin that is
+                                            // pulled HIGH through every reset and boot, so an active-high enable
+                                            // would switch a router on while the board restarts. GPIO13 stays low.
+                                            // (13 was the old OLED SDA: never set I2C_ENABLE with this map.)
 
 #if DRIVER_SPINDLE_ENABLE & SPINDLE_PWM
 #define SPINDLE_PWM_PIN         AUXOUTPUT0_PIN
@@ -63,6 +66,7 @@
 // I2C for the 4-pin OLED (VCC 3.3 V, GND, SCL, SDA). OLED modules carry their own pull-ups.
 #if I2C_ENABLE
 #define I2C_PORT                I2C_NUM_1
+#error "GPIO13 is the PWM spindle enable now (review 2026-11-10): pick new OLED pins before enabling I2C"
 #define I2C_SDA                 GPIO_NUM_13 // Rev's choice: VIN/GND/D13/D12/D14 row of the screw-terminal breakout
 #define I2C_SCL                 GPIO_NUM_14 // same row. That row has no 3V3: power the OLED from the 3V3 pin on the other row
 #endif
