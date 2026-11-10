@@ -22,6 +22,9 @@ Two families are on the machine:
 - **The cross slide (R9, "long X"):** a saddle that rides the Z rails and carries its own X rails and leadscrew,
   a top plate that rides X, and a belt-drive bracket for the X motor.
 
+There is also an **option for X: direct drive (R8)**, with the motor in line with the X screw on a 1:1 Oldham
+coupler instead of a belt. See [Option: direct-drive X](#option-direct-drive-x-r8-11-coupler) below.
+
 ## Parts
 
 | File | Qty | What it is | Size (mm) | Print time* |
@@ -69,6 +72,40 @@ Dimensioned drawings: [`drawings/drawings_bases.png`](drawings/drawings_bases.pn
 on a separate off-the-shelf NEMA 17 mount (not part of these files), with its own pulleys. So the lathe as built
 uses its own Z belt ratio. Use the measured steps per mm from the
 [settings table](../README.md#machine-settings-calibrated-on-the-real-lathe), not the 1:1 design ratio.
+
+## Option: direct-drive X (R8, 1:1 coupler)
+
+Prefer no belt on X? The R8 cross slide drives the X screw straight from the motor through a **recessed Oldham
+coupler**, 1:1. It is a matched set: the R8 motor plate only fits the R8 saddle, so print all three instead of the
+three R9 cross-slide parts. The bed ends, rail caps and thrust washers are the same for both.
+
+| File | Qty | What it is | Size (mm) | Print time* |
+|---|---|---|---|---|
+| `cross_slide_saddle_r8_direct` | 1 | Saddle on the Z rails: brass nut mount, X rail lands, both X towers, Oldham cavity on the screw line | 158 x 61 x 60 | 6 h 54 |
+| `cross_slide_top_plate_r8_direct` | 1 | Rides the X rails, tool platform grid on top | 45 x 61 x 24 | 2 h 21 |
+| `x_motor_plate_r8_direct` | 1 | NEMA 17 plate on the tower, motor in line with the X screw | 22 x 65 x 52 | 1 h 33 |
+
+Drawing: [`drawings/drawings_r8_direct.png`](drawings/drawings_r8_direct.png).
+
+**R8 against R9:**
+- **X travel:** 49.2 mm (1.94 in) on R8, against 104.3 mm on R9. R8 is the short cross slide.
+- **Z travel:** 84.2 mm with the R8 saddle, against about 74 mm with R9.
+- **Drive:** R8 is 1:1 through the coupler, so X stays at 400 steps per mm at 16x microstepping on a 2 mm lead
+  screw, same as the R9 30T:30T belt. No belt or pulleys to buy or tension.
+
+**Extra hardware for R8 (instead of the R9 belt parts):**
+
+| Item | Qty | Notes |
+|---|---|---|
+| Oldham coupler, D18 x L25, 5 mm to 8 mm | 1 | sits recessed in the saddle; a rigid coupler binds here (see below) |
+| 10 mm (9.982) round bar, 156.4 mm | 2 | X rails (R8) |
+| 8 mm T8 leadscrew, 160 mm | 1 | X screw (R8) |
+| M4 screws | 4 | motor plate to the saddle tower (tapped 3.3 mm holes, 11 mm deep) |
+| M3 screws | 4 | NEMA 17 to the motor plate |
+
+**Use the Oldham, not a rigid coupler.** The screw is held axially at the saddle end and the motor is bolted at the
+other, so a rigid coupler turns any printed misalignment into a cyclic side load on the motor bearings, which you
+will not notice until it binds. The plate's ribs sit at the sides so the coupler's hub screw stays reachable.
 
 ## Printing notes (learned on the real parts)
 - **Frames:** PLA+. **Saddle and top plate:** plain PLA worked; same filament roll for a part and its fit test.

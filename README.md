@@ -69,6 +69,8 @@ list, hardware list and the printing lessons learned building it.
 
 ![R9 cross slide drawings](hardware/drawings/drawings_r9.png)
 
+**Option for X:** a direct-drive cross slide (R8) with the motor in line on a 1:1 Oldham coupler, no belt. It has shorter X travel (49 mm). See [hardware/README.md](hardware/README.md#option-direct-drive-x-r8-11-coupler).
+
 Printing a set from these files? **[Buy me a coffee](https://buymeacoffee.com/revjmoney)** ☕ it keeps the designs coming.
 Designed in FreeCAD; the rotary CAM side of the shop is **[RotatoCAM](https://rotatocam.com)**.
 
