@@ -172,6 +172,8 @@ typedef struct ws_sessiondata
     uint16_t guest_len;
     bool guest_overflow;
     bool guest;             // asked to join as a guest ("revturn-guest" in the request): never takes control from a screen
+    bool guest_driving;     // review 2026-11-10: this guest sent cycle start (handle mode): the dead-man below applies
+    TickType_t guest_rx;    // when this guest last sent anything (the pendant polls status every 200 ms)
 } ws_sessiondata_t;
 
 typedef struct {
@@ -703,8 +705,32 @@ FLASHMEM static void websocket_state_free (ws_sessiondata_t *session)
     }
 }
 
+// Review 2026-11-10 dead-man: a pendant that drove a program with its wheel and then vanished (closed, or silent
+// past GUEST_SILENT_MS while the machine still moves) gets the program feed-held by the lathe itself, so a WiFi
+// drop can never leave it running at the wheel-set speed.
+#define GUEST_SILENT_MS 700
+
+static void guest_deadman (ws_sessiondata_t *session, bool gone)
+{
+    if(!session->guest || !session->guest_driving)
+        return;
+
+    sys_state_t state = state_get();
+    if(state == STATE_IDLE || !(state & (STATE_CYCLE | STATE_HOLD))) {
+        if(state == STATE_IDLE)
+            session->guest_driving = false;       // program over: nothing to watch
+        return;
+    }
+    if(gone || (xTaskGetTickCount() - session->guest_rx) > pdMS_TO_TICKS(GUEST_SILENT_MS)) {
+        session->guest_driving = false;
+        if(state & STATE_CYCLE)
+            enqueue_realtime_command(CMD_FEED_HOLD);
+    }
+}
+
 FLASHMEM static void websocket_unlink_session (ws_sessiondata_t *session)
 {
+    guest_deadman(session, true);
     session->magic = 0;             // Invalidate session
     session->state = WsState_Free;
 
@@ -913,6 +939,7 @@ FLASHMEM static uint32_t websocket_msg_parse (ws_sessiondata_t *session, uint8_t
                         // single block (handle-driven program stepping), and whole whitelisted lines (jog, zero/set,
                         // spindle) while the machine is Idle or jogging. See guest_realtime_ok / guest_line_try.
                         uint_fast16_t i = session->header.rx_index, n = payload_len;
+                        session->guest_rx = xTaskGetTickCount();
                         while(n--) {
                             uint8_t c = *payload++ ^ mask[i++ % 4];
                             if(guest_realtime_ok(c)) {
@@ -924,6 +951,8 @@ FLASHMEM static uint32_t websocket_msg_parse (ws_sessiondata_t *session, uint8_t
                                     c = CMD_STATUS_REPORT;
                                 else if(c == CMD_CYCLE_START_LEGACY)
                                     c = CMD_CYCLE_START;
+                                if(session->guest && c == CMD_CYCLE_START)
+                                    session->guest_driving = true;
                                 enqueue_realtime_command(c);
                             }
                             else if(c == '\n' || c == '\r') {
@@ -1611,6 +1640,7 @@ FLASHMEM void websocketd_poll (void)
         if(client->state == WsState_Connected) {
             if(client->stream)
                 websocket_stream_handler(client);
+            guest_deadman(client, false);
             websocket_ping(client);
         } else if(client->state == WsState_Closing)
             websocket_close_conn(client, client->pcb);
