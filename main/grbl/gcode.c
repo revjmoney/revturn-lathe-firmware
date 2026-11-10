@@ -3994,6 +3994,12 @@ status_code_t gc_execute_block (char *block)
 
     // Initialize planner data struct for motion blocks.
     plan_line_data_t plan_data = {0};
+#if ENABLE_ACCELERATION_PROFILES
+    // Rev 2026-11-10: {0} left acceleration_factor at 0 for jogs (only normal moves set it further down), so every
+    // jog planned with ZERO acceleration: C crept, st_prep_buffer() spun forever, the task watchdog fired and the
+    // screens lost their status replies. Jogs run at 100% (profile 0); motion blocks still get the modal profile.
+    plan_data.acceleration_factor = gc_get_accel_factor(0);
+#endif
     plan_data.offset_id = gc_state.offset_id;
     plan_data.overrides = gc_state.modal.override_ctrl;
     plan_data.condition.target_validated = plan_data.condition.target_valid = sys.soft_limits.mask == 0;
