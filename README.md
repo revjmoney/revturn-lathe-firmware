@@ -56,7 +56,7 @@ chuck (C) in synced moves, nonstop spindle speed and direction changes, and a C-
 
 ## The machine
 - X (cross slide, diameter), Z (carriage), C (chuck: a NEMA 23 that is either the **spindle** under M3/M4 or a
-  **rotary C axis**), TB6600 drivers at 16x microstepping.
+  **rotary C axis**), TB6600 drivers at 16x microstepping (8x on the chuck).
 - ESP32 DevKit (WROOM-32), WiFi to the shop network, WebUI v3, screen served from flash.
 - The lathe screen and the stock WebUI link to each other: **WEBUI** on the lathe screen, a **LATHE** tab in the WebUI
   (upload [`webui-files/`](webui-files/) to the flash file system).
@@ -81,19 +81,21 @@ serial terminal. Axis values are in mm and degrees (grblHAL's native units); the
 | `$32` | 2 | Lathe mode (X in diameter, G7/G8) |
 | `$100` | 800 | X steps/mm: **measured** (X-2 on diameter moved 0.5 in real at 400, so doubled); 8 mm T8 screw |
 | `$102` | 966 | Z steps/mm: **measured** (0.99 in per commanded inch on calipers); belt to an 8 mm T8 screw |
-| `$103` | 26.667 | C steps/deg: **measured** (one commanded turn = exactly one chuck turn); 20T to 120T belt |
+| `$103` | 13.333 | C steps/deg: C driver at **8x** microstepping (26.667 at 16x, measured: one commanded turn = exactly one chuck turn); 20T to 120T belt |
 | `$110` / `$112` | 1300 / 380 | X / Z max rate, mm/min (X 51 in/min, about 17 kHz of steps at 800 steps/mm; Z 15 in/min, raised once the belt stopped slipping) |
-| `$113` | 54000 | C max rate, deg/min = **150 rpm** chuck |
+| `$113` | 72000 | C max rate, deg/min = **200 rpm** chuck (rpm x 360) |
 | `$120` / `$122` / `$123` | 50 / 12 / 240 | X / Z accel (mm/s²), C accel (deg/s², about 2.5 s to 100 rpm) |
-| `$30` | 150 | Max spindle rpm (the screen's slider tops out here) |
+| `$30` | 200 | Max spindle rpm (the screen's slider tops out here) |
 | `$538` | 1 | Rotary wrap for C: `G91 G28 C0` goes the short way to the stored G28 angle and resets the C count (no unwinding hundreds of turns). The screen stores G28 on ZERO C and ends every program with it |
 | `$340` | 10 | Spindle at-speed tolerance %: g-code waits for the stepper spindle to reach speed |
 | `$395` | 1 | Default spindle = the stepper spindle (spindle 1 is the PWM output for a live tool) |
 | `$677` | 7 | Stepper spindle options |
 | `$2` / `$3` / `$5` | 5 / 1 / 7 | Step invert (TB6600 common anode), direction invert, limit invert |
 
-Limits worth knowing: a TB6600 is rated to about 20 kHz of step pulses, which is about 125 chuck rpm at 26.667
-steps/deg. Above that, listen for stalls.
+Limits worth knowing: a TB6600 is rated to about 20 kHz of step pulses. At 16x (26.667 steps/deg) that is about 125
+chuck rpm; at 8x (13.333) about 250. On this lathe the chuck runs 250 but 200 sounds healthier, so 200 is the max.
+Past that the NEMA 23 (6:1, so 1200 motor rpm at 200 chuck rpm) runs out of torque before the driver runs out of steps;
+go to 4x (6.667) or a 48 V driver like a DM542 for more.
 
 ## Branches
 - `revturn-lathe` (default): the lathe build. Build with `pio run -e revturn_lathe` (ESP-IDF 4.4).
