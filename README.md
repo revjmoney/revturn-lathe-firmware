@@ -128,8 +128,9 @@ go to 4x (6.667) or a 48 V driver like a DM542 for more.
 | WebUI server | `main/webui/server.c` | Reports the STA IP, serves the REVTURN screen at `/` (embedded `lathe.html.gz`, a flash copy wins), moves the stock WebUI to `/webui/`, broadcasts the controlling client. |
 | Machine | `main/my_machine.h`, `main/boards/my_machine_map.h`, `platformio.ini`, `main/CMakeLists.txt` | Lathe pin map, PWM spindle 1 (PWM on GPIO4, enable on GPIO13; moved off the GPIO5 boot strap pin so a router never switches on during a reset), WebUI v3, LittleFS, embedded screen. |
 
-The screen itself (plain JS, 283 tests) lives in a separate repo; its built, gzipped page is
-`main/embedded/lathe.html.gz`.
+The screen's full source is in [`screen/`](screen/) (plain JS, esbuild, 368 vitest tests). Build it with
+`cd screen && npm ci && npm run build`; the gzipped page `screen/dist/lathe.html.gz` is what goes in
+`main/embedded/lathe.html.gz` (or upload it to the controller's flash with `npm run deploy`).
 
 ## License
 **REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).** Everything JMSCNC made here

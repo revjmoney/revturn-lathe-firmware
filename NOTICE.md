@@ -9,7 +9,8 @@ The full license text is in [`LICENSE`](LICENSE). This covers:
 
 - the REVTURN changes to the grblHAL firmware (`main/`, `rev-patches/`, `sdkconfig.revturn_lathe` and the
   REVTURN board map)
-- the REVTURN screen build that ships inside the firmware, and the WebUI branding files (`webui-files/`)
+- the REVTURN screen: full source in `screen/` and the build that ships inside the firmware, and the WebUI
+  branding files (`webui-files/`)
 - the printed parts: STL, STEP, drawings and FreeCAD sources and scripts (`hardware/`)
 - the tools, test programs, test data, charts and findings (`tools/`, `docs/`)
 - the website (`site/`)

@@ -1,0 +1,19 @@
+{
+  "name": "revturn-lathe-ui",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "REVTURN by JMSCNC: lathe control screen served from the grblHAL ESP32 lathe.",
+  "author": "Rev. J. Money / JMSCNC (jmscnc.com)",
+  "scripts": {
+    "test": "vitest run",
+    "build": "node tools/build.mjs",
+    "deploy": "node tools/deploy.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "jsdom": "^26.0.0",
+    "vitest": "^3.2.0"
+  },
+  "license": "GPL-3.0-or-later"
+}

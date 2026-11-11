@@ -72,7 +72,6 @@ See `FINDINGS.md`.
 
 ## In this repo
 
-Tools, findings, per-run reports, charts and settings snapshots. The raw phone data (about 40 MB) is not committed;
-the full data set is zipped on Rev's PC as `F:\micro-lathe\tools\resonance-dataset-2026-11-11.zip` (sha256 in the
-`.sha256` file next to it). `record.mjs` imports the REVTURN screen source (lathe-ui) from `../../../../lathe-ui/src/`:
-adjust those three import lines to wherever that repo is on your machine.
+Tools, findings, per-run reports, charts and settings snapshots. The raw phone data is not committed; it is in the
+GitHub Releases `resonance-2026-11-11` and `song-2026-11-11`. `record.mjs` imports the REVTURN screen source from
+`../../screen/src/` in this repo, so it runs from a plain clone (Node 22 or newer).

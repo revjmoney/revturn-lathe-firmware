@@ -11,9 +11,9 @@
 // Output: runs/<file>-<time>/phone.json (every phyphox buffer), lathe.csv (t_ms,state,feed,rpm), meta.json
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { LatheLink } from '../../../../lathe-ui/src/link.js';
-import { parseStatus } from '../../../../lathe-ui/src/status.js';
-import { uploadFile, runLine } from '../../../../lathe-ui/src/files.js';
+import { LatheLink } from '../../screen/src/link.js';
+import { parseStatus } from '../../screen/src/status.js';
+import { uploadFile, runLine } from '../../screen/src/files.js';
 
 const arg = (k, d) => { const i = process.argv.indexOf(k); return i >= 0 ? process.argv[i + 1] : d; };
 const phone = (arg('--phone') ?? '').replace(/\/$/, '');

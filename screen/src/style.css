@@ -1,0 +1,307 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later
+   REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+   Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md). */
+/* REVTURN lathe control screen. Classic conversational-control look: dark screen, big readouts. */
+:root {
+  --bezel: #2b2f33; --bezel-edge: #15181a; --lcd: #05080a; --text: #e8e8e8; --dim: #9aa;
+  --title: #ffd84a; --info: #8fb3ff; --spindle: #7fffb0; --soft: #1d3a8a; --soft-on: #3a63d4;
+  --key: #e9ecef; --key-text: #111; --key-dark: #34495e; --go: #2e8b57; --hold: #e0a100; --stop: #c0392b;
+}
+* { box-sizing: border-box; }
+html { color-scheme: dark; }
+html, body { margin: 0; background: #1b1e21; color: var(--text); font-family: Arial, Helvetica, sans-serif; }
+button { font: inherit; cursor: pointer; border: 0; touch-action: manipulation; }
+button:disabled { opacity: .35; cursor: not-allowed; }
+
+/* --g: one spacing unit that shrinks with the window, so the whole control fits on screen without scrolling */
+:root { --g: clamp(3px, 0.9vh, 10px); --pad: clamp(4px, 1.1vh, 12px); }
+.ctl { display: flex; gap: var(--g); background: var(--bezel); padding: var(--g); border: 3px solid var(--bezel-edge);
+  height: 100vh; height: 100dvh; overflow: hidden; }
+.lcd { flex: 1; min-width: 0; min-height: 0; background: var(--lcd); border: 3px solid #111; border-radius: 6px;
+  padding: var(--g) calc(var(--g) * 1.5); font-family: Consolas, 'Courier New', monospace; display: flex; flex-direction: column; overflow: hidden; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 13px; color: var(--info); border-bottom: 1px solid #223; padding-bottom: 4px; flex-wrap: wrap; }
+.top .good { color: var(--spindle); } .top .bad { color: #ff5a4a; font-weight: bold; }
+.mode { color: var(--title); font-weight: bold; font-size: clamp(15px, 3vh, 26px); letter-spacing: 2px; margin: 2px 0 0; }
+.row { display: flex; align-items: baseline; gap: 14px; margin: 0; line-height: 1.05; }
+.ax { width: 1.1em; font-size: clamp(20px, 5vh, 56px); font-weight: bold; color: #fff; }
+.val { font-size: clamp(24px, min(5vw, 7.5vh), 84px); font-weight: bold; min-width: 6.5ch; text-align: right; color: #fff; font-variant-numeric: tabular-nums; }
+.tag { font-size: 13px; color: var(--dim); width: 44px; }
+.sp { border-top: 1px solid #223; margin-top: 2px; padding-top: 2px; }
+.sp .ax, .sp .val { color: var(--spindle); }
+.panel { flex: 1; margin-top: var(--g); min-height: 60px; overflow: auto; }
+.soon { color: var(--dim); padding: 10px 0; }
+.msg { display: flex; justify-content: space-between; gap: 10px; font-size: 14px; color: var(--title); min-height: 18px; margin-top: 2px; }
+.soft { display: flex; gap: 6px; margin-top: var(--g); flex-wrap: wrap; }
+.soft button { flex: 1; min-width: 70px; background: var(--soft); color: #dfe8ff; font-size: 13px; padding: var(--pad) 2px; border-radius: 3px; }
+.soft button.on { background: var(--soft-on); color: #fff; font-weight: bold; }
+
+.zeros { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--g); }
+.zerobar { margin: var(--g) 0; }
+.zerobar { grid-template-columns: repeat(5, 1fr); }
+.zeros button.gozero { border-color: #d9a400; color: #ffd24a; }
+.zeros button, .lcd .btn { background: #1d2a36; color: #fff; border: 1px solid #36506a; border-radius: 4px; padding: var(--pad) 4px; font-family: Arial; font-weight: bold; }
+
+.right { width: clamp(210px, 22vw, 270px); min-height: 0; display: flex; flex-direction: column; gap: var(--g); overflow-y: auto; }
+.keys { display: grid; grid-template-columns: repeat(4, 1fr); gap: calc(var(--g) * 0.7); }
+.keys button { background: var(--key); color: var(--key-text); border-radius: 6px; padding: var(--pad) 0; font-weight: bold; font-size: 15px; }
+.keys .b { background: var(--key-dark); color: #fff; font-size: 11px; }
+.keys .zero3 { grid-column: span 3; }
+.motion { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.motion button, .right > .big { border-radius: 6px; padding: calc(var(--pad) * 1.2) 0; font-weight: bold; font-size: 18px; }
+.go { background: var(--go) !important; color: #fff !important; }
+.hold { background: var(--hold) !important; color: #111 !important; }
+.stop { background: var(--stop) !important; color: #fff !important; }
+
+.mdi { background: var(--lcd); border: 3px solid #111; border-radius: 6px; font-family: Consolas, monospace; font-size: 12px;
+  color: #b8c4c8; padding: 6px 8px; flex: 1; min-height: 70px; display: flex; flex-direction: column; }
+.mdi .lbl { color: var(--title); font-weight: bold; font-size: 11px; margin-bottom: 4px; }
+.mdi .log { flex: 1; overflow-y: auto; min-height: 0; }
+.mdi .log div { white-space: pre-wrap; word-break: break-all; }
+.mdi .ok { color: var(--spindle); } .mdi .in { color: #fff; } .mdi .err { color: #ff7a6a; } .mdi .msg { color: var(--info); display: block; min-height: 0; margin: 0; font-size: 12px; }
+.mdi .line { display: flex; gap: 4px; padding-top: 6px; }
+.mdi input { flex: 1; min-width: 0; background: #111a22; border: 1px solid #2a3a4a; padding: 6px; color: #fff; font: inherit; }
+.mdi button { background: var(--go); color: #fff; padding: 6px 10px; border-radius: 3px; }
+
+/* forms used by CYCLES / EDIT */
+.form { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px 12px; font-family: Arial; font-size: 13px; }
+.form label { display: flex; flex-direction: column; gap: 3px; color: var(--dim); }
+.form input, .form select, .form textarea { background: #111a22; border: 1px solid #2a3a4a; color: #fff; padding: 6px; font: 15px Consolas, monospace; }
+.picker { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.picker button { background: #1d2a36; color: #dfe8ff; border: 1px solid #36506a; border-radius: 4px; padding: 8px 12px; }
+.picker button.on { background: var(--soft-on); color: #fff; }
+.sketch { float: right; width: 150px; margin-left: 10px; }
+.preview { width: 100%; height: clamp(90px, 24vh, 260px); background: #000; border: 1px solid #223; margin-top: 8px; display: block; }
+.code { max-height: 140px; overflow: auto; font-size: 12px; color: #b8c4c8; background: #000; border: 1px solid #223; padding: 6px; white-space: pre; }
+.list { display: flex; flex-direction: column; gap: 4px; font-family: Arial; }
+.list .item { display: flex; gap: 8px; align-items: center; background: #0d141b; border: 1px solid #223; padding: 6px 8px; }
+.list .item.sel { border-color: var(--soft-on); }
+.list .item span { flex: 1; }
+/* DRO readout with the jog pad beside it (Rev 2026-11-09), jog step / feed row underneath */
+.drotop { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--g); align-items: center; }
+.readout { min-width: 0; }
+.jog { display: grid; grid-template-columns: repeat(3, clamp(46px, 5vw, 76px)); gap: calc(var(--g) * 0.8); }
+.jog button { background: #1d2a36; color: #fff; border: 1px solid #36506a; border-radius: 6px; padding: calc(var(--pad) * 1.1) 0;
+  font: bold clamp(13px, 1.9vh, 18px) Arial; touch-action: none; }
+.jog button[data-jog^="C"] { color: var(--spindle); }
+.jogx { display: flex; align-items: center; justify-content: center; color: var(--dim); font: bold 11px Arial; letter-spacing: 1px; }
+.jogrow { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; margin: var(--g) 0; font: 12px Arial; color: var(--dim); }
+.jogrow .picker { margin: 0; gap: 4px; }
+.jogrow .picker button { padding: calc(var(--pad) * 0.7) 9px; }
+.jogrow label { display: inline-flex; align-items: center; gap: 4px; }
+.jogrow input { width: 64px; background: #111a22; border: 1px solid #2a3a4a; color: #fff; padding: 4px; font: 13px Consolas, monospace; }
+.lbl3 { color: var(--title); font: bold 11px Arial; letter-spacing: 1px; }
+@media (max-width: 760px) {
+  .drotop { grid-template-columns: 1fr; }
+  .jogpad { justify-self: center; }
+  .jog { grid-template-columns: repeat(3, 72px); }
+}
+
+.stopbar { display: none; }
+
+/* phone: screen, keypad, MDI stacked; HOLD / GO / STOP pinned to the bottom */
+@media (max-width: 760px) {
+  .ctl { flex-direction: column; padding: 6px 6px 72px; height: auto; min-height: 100vh; overflow: visible; }
+  .lcd, .right { overflow: visible; }
+  .mdi { min-height: 160px; } .mdi .log { max-height: 30vh; }
+  .panel { min-height: 120px; }
+  .right { width: 100%; }
+  .spinbar { grid-template-columns: 1fr 1fr auto; } .spinbar button { min-width: 0; } .spinbar input[type=range] { grid-column: 1 / -1; order: 3; } .spinbar span { order: 2; }
+  .right > .motion, .right > .big { display: none; }
+  .stopbar { display: flex; position: fixed; left: 0; right: 0; bottom: 0; gap: 8px; padding: 8px; background: var(--bezel-edge); z-index: 10; }
+  .stopbar button { flex: 1; padding: 16px 0; font-size: 18px; font-weight: bold; border-radius: 8px; }
+  .zeros { grid-template-columns: repeat(2, 1fr); }
+  .zerobar .gozero { grid-column: 1 / -1; }
+  .sketch { display: none; }
+}
+
+.lcd.stale .val { opacity: .35; }
+
+/* v2: Fanuc-style override panel, alarm/dry-run keys, tool table, run progress */
+.top .warn { color: var(--hold); font-weight: bold; }
+.drybadge { background: var(--stop); color: #fff; padding: 0 6px; border-radius: 3px; font-weight: bold; }
+.progress { color: var(--title); font-size: 15px; margin-top: 2px; }
+.runstep { color: var(--spindle); font-size: 16px; font-weight: bold; min-height: 20px; margin: 4px 0; }
+.ovr { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 12px; color: var(--dim); margin-top: var(--g); }
+.ovr [data-ov-show] { color: var(--info); }
+.ovk { display: inline-flex; align-items: center; gap: 3px; }
+.ovk button { background: #1d2a36; color: #fff; border: 1px solid #36506a; border-radius: 3px; padding: 5px 8px; font-family: Arial; font-weight: bold; }
+.aux { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.aux button { border-radius: 6px; padding: var(--pad) 0; font-weight: bold; }
+.aux .dry { background: #3a2a10; color: var(--hold); border: 1px solid var(--hold); }
+.aux .dry.on { background: var(--stop); color: #fff; border-color: var(--stop); }
+.aux .unlock { background: var(--stop); color: #fff; grid-column: span 2; }
+.picker.tools { margin-top: 10px; }
+.lbl2 { color: var(--title); font: bold 12px Arial; margin: 8px 0 4px; }
+.ttable { display: flex; flex-direction: column; gap: 4px; font-family: Arial; font-size: 12px; }
+.trow { display: grid; grid-template-columns: 46px 1.4fr 1fr 1fr auto auto; gap: 6px; align-items: end; }
+.trow .tsel { background: var(--soft); color: #dfe8ff; font: bold 16px Consolas, monospace; padding: 6px 0; border-radius: 4px; align-self: stretch; }
+.trow .tsel.on { background: var(--title); color: #05080a; }
+.trow:has(.tsel.on) input { border-color: #8a7a2a; }
+.trow input { background: #111a22; border: 1px solid #2a3a4a; color: #fff; padding: 5px; font: 13px Consolas, monospace; width: 100%; }
+.trow label { display: flex; flex-direction: column; color: var(--dim); gap: 2px; }
+.trow .btn { padding: 6px 6px; font-size: 11px; }
+@media (max-width: 760px) {
+  .trow { grid-template-columns: 40px 1fr 1fr 1fr; }
+  .trow .btn, .trow .soon { grid-column: span 2; }
+}
+.bphead { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; color: #8fb3ff; font-size: 12px; }
+.bphead .btn { padding: 6px 10px; }
+.preview.big { height: clamp(120px, 34vh, 340px); }
+.spinbar { display: grid; grid-template-columns: auto auto 1fr auto; gap: var(--g); align-items: center; margin: 0; }
+.spinbar button { background: #1d3a26; color: #fff; border: 1px solid #2f7a48; border-radius: 4px; padding: var(--pad) 10px; font-family: Arial; font-weight: bold; min-width: 110px; }
+.spinbar button.on { background: #2fa85a; border-color: #7fffb0; color: #001b0a; }
+.spinbar button.spinstop { background: #7a1f1f; border-color: #c43c3c; min-width: 100px; }
+.spinbar input[type=range] { width: 100%; height: 28px; accent-color: #3fd17a; }
+.spinbar span { color: #7fffb0; font-family: monospace; font-size: 18px; min-width: 80px; text-align: right; }
+
+/* link back to the stock grblHAL WebUI ($ settings, files, console) */
+.top .webui { color: #dfe8ff; background: var(--soft); border: 1px solid var(--soft-on); border-radius: 3px; padding: 1px 8px;
+  text-decoration: none; font: bold 12px Arial; letter-spacing: 1px; }
+.top .webui:hover { background: var(--soft-on); color: #fff; }
+/* DRO: the backplot takes whatever height is left */
+.fill { height: 100%; display: flex; flex-direction: column; }
+.fill .picker.tools { margin-top: 0; margin-bottom: 0; }
+.fill .bphead { margin-top: var(--g); }
+.fill .preview { flex: 1; height: auto; min-height: 50px; }
+.fill .picker.tools button { padding: calc(var(--pad) * 0.6) 10px; }
+@media (max-width: 760px) { .fill { height: auto; } .fill .preview { flex: none; height: 220px; } }
+/* LIMITS switch (stroke limits), off by default */
+.aux .lim { background: #1d2a36; color: #9aa; border: 1px solid #36506a; }
+.aux .lim.on { background: #1d3a26; color: #7fffb0; border-color: #2fa85a; }
+/* short screens (800x480 and similar): drop labels that repeat what the buttons already show */
+@media (max-height: 560px) and (min-width: 761px) {
+  .jogrow .lbl3, .ovr [data-ov-show] { display: none; }
+  .jogrow input { width: 50px; }
+  .jogrow .picker button { padding: 3px 7px; }
+}
+/* running program lines streamed into the console (Rev 2026-11-09) */
+.mdi .run { color: #e8d48a; white-space: pre; }
+/* X/Z jog speed slider, same look as the spindle bar right under it (Rev 2026-11-09) */
+.xzbar { display: grid; grid-template-columns: auto 1fr auto; gap: var(--g); align-items: center; margin: 0 0 var(--g); }
+.xzbar .lbl3 { min-width: 110px; text-align: center; color: #8fb3ff; }
+.xzbar input[type=range] { width: 100%; height: 28px; accent-color: #4a8dff; }
+.xzbar span[data-xz-show] { color: #8fb3ff; font-family: monospace; font-size: 18px; min-width: 80px; text-align: right; }
+/* DOS-style popup window (Rev 2026-11-09): covers the LCD, the right column (HOLD / STOP / GO) stays live.
+   Screen colours, not blue: black LCD, light grey double border, yellow [ TITLE ]. */
+.lcd { position: relative; }
+.dospop { position: absolute; inset: 0; z-index: 20; background: rgba(0, 0, 0, .55); display: flex; padding: var(--g) 0; }
+.dospop[hidden] { display: none; }
+.dosbox { flex: 1; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: var(--lcd);
+  border: 6px double #b8c4c8; box-shadow: 10px 10px 0 #000; font-family: Consolas, 'Courier New', monospace; }
+.dostitle { display: grid; grid-template-columns: auto 1fr auto; align-items: center; background: #b8c4c8; color: #05080a;
+  font-weight: bold; letter-spacing: 2px; padding: 2px 6px; }
+.dostitle [data-pop-title] { text-align: center; grid-column: 2; }
+/* Rev 2026-11-11: windows leave the mode buttons visible, so tapping a mode closes them: no close button on the
+   lathe screen. Phones (window covers everything) still get a big yellow CLOSE (yellow, not red: red is STOP). */
+.dostitle { padding: 4px 4px 4px 6px; }
+.dosclose { background: var(--title); color: #05080a; font: bold clamp(16px, 2.6vh, 22px) Consolas, monospace; letter-spacing: 1px;
+  padding: 8px 18px; min-height: 44px; border: 2px solid #05080a; border-radius: 4px; box-shadow: 3px 3px 0 #05080a; }
+.dosclose:hover, .dosclose:active { background: #fff3b0; }
+.dosclose, .dosleft { display: none; }
+.dosbody { flex: 1; min-height: 0; overflow: auto; padding: var(--g) calc(var(--g) * 1.5); display: flex; flex-direction: column; color: var(--text); }
+.bpwin { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.bpwin .bphead { margin-top: 0; }
+.preview.bpbig { flex: 1; height: auto; min-height: 120px; }
+.bigopen { background: #1d2a36; color: var(--title); border: 1px solid #36506a; border-radius: 4px; padding: var(--pad) 14px;
+  font: bold 14px Consolas, monospace; letter-spacing: 1px; margin-top: var(--g); align-self: flex-start; }
+.top .webui { cursor: pointer; }
+/* editor window: steps on the left, the step form / g-code on the right */
+.editwin { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.editcols { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(180px, 30%) 1fr; gap: calc(var(--g) * 1.5); }
+.editcols > .list { overflow: auto; }
+.editcols > [data-step-form-wrap] { overflow: auto; min-width: 0; }
+.gcodebox { width: 100%; min-height: 40vh; resize: vertical; }
+.runcode { max-height: none; flex: 1; }
+@media (max-width: 760px) {
+  .dospop { position: fixed; inset: 0 0 72px 0 !important; padding: var(--g); }
+  .dosclose { display: inline-block; } .dosleft { display: block; width: 140px; }
+  .editcols { grid-template-columns: 1fr; }
+}
+.gcodeform { grid-template-columns: 1fr; }
+.gcodeform .gcodebox { font-size: 15px; line-height: 1.35; }
+
+/* TOOL screen (Rev 2026-11-10): big tool cards */
+.toolcards { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--g); }
+.toolcard { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: left; background: #1d2a36; color: #dfe8ff; border: 1px solid #36506a; border-radius: 6px; padding: calc(var(--pad) * 1.2) 12px; }
+.toolcard .tn { font-size: 1.6em; font-weight: bold; color: #fff; }
+.toolcard .td { font-size: 0.95em; color: #b9c8de; }
+.toolcard .to { font-family: monospace; font-size: 0.9em; color: #8fb3d9; }
+.toolcard.on { background: var(--soft-on); border-color: #ffd24a; }
+.toolcard.on .tn { color: #ffd24a; }
+@media (max-width: 700px) { .toolcards { grid-template-columns: repeat(2, 1fr); } }
+
+/* RUN window (Rev 2026-11-11): one-line DRO strip across the top (about 20 %), backplot beside the code */
+.runwin { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.runbar { flex: 0 0 20%; min-height: 48px; display: flex; align-items: center; justify-content: space-around; gap: 2ch;
+  border-bottom: 1px solid #223; font-weight: bold; color: #fff; font-variant-numeric: tabular-nums;
+  font-size: clamp(18px, min(3.4vw, 8vh), 72px); white-space: nowrap; overflow: hidden; }
+.runbar b { margin-right: .4ch; }
+.runbar i { font-style: normal; font-size: 13px; color: var(--dim); margin-left: .5ch; }
+.runbar .rbsp { color: var(--spindle); }
+.runcols { flex: 1; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: var(--g); margin-top: var(--g); }
+.runcols .preview { margin-top: 0; height: 100%; min-height: 0; }
+.runcols .runcode { min-height: 0; }
+@media (max-width: 760px) { .runcols { grid-template-columns: 1fr; } .runcols .preview { height: 220px; } }
+/* set / actual speeds under each RUN DRO reading (Rev 2026-11-11): small, no extra room */
+.runbar .rbi { display: flex; flex-direction: column; align-items: center; line-height: 1.05; }
+.runbar small { font-size: 12px; font-weight: normal; color: var(--info); letter-spacing: 0; font-family: Consolas, monospace; }
+.runbar .rbsp small { color: var(--spindle); }
+.runwin .ovr { margin-top: 4px; }
+
+/* REVTURN by JMSCNC branding (Rev 2026-11-11) */
+.top .brand { display: inline-flex; align-items: center; gap: 6px; color: var(--title); }
+.top .brand b { letter-spacing: 2px; font-size: 14px; }
+.top .brand small { color: var(--dim); font-size: 10px; letter-spacing: 1px; }
+.top .brandimg { height: 22px; width: auto; display: block; }
+.about { display: flex; gap: calc(var(--g) * 3); align-items: flex-start; flex-wrap: wrap; }
+.aboutimg { height: min(44vh, 320px); width: auto; flex: none; }
+.abouttext { flex: 1; min-width: 240px; font-family: Arial, sans-serif; font-size: 14px; line-height: 1.45; }
+.abouttext a { color: var(--title); }
+.aboutname { font: bold clamp(28px, 6vh, 56px) Consolas, monospace; color: var(--title); letter-spacing: 6px; }
+.aboutby { color: var(--dim); letter-spacing: 2px; margin-bottom: 8px; }
+.aboutver { color: var(--info); }
+.abouttext ul { padding-left: 18px; }
+.aboutheader { height: clamp(48px, 12vh, 96px); width: auto; display: block; margin-bottom: 8px; }
+
+/* SETTINGS (Rev 2026-11-11): every grblHAL setting in the REVTURN look */
+.setwin { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.setcols { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(150px, 22%) 1fr; gap: calc(var(--g) * 1.5); }
+.setnav { display: flex; flex-direction: column; gap: 3px; overflow: auto; min-height: 0; }
+.setsearch { background: #111a22; border: 1px solid #2a3a4a; color: #fff; padding: 6px 8px; font: 13px Consolas, monospace; margin-bottom: 4px; }
+.setg { text-align: left; background: #0d141b; color: #b8c4c8; border: 1px solid #1d2a36; border-radius: 3px; padding: 6px 8px;
+  font: bold 12px Consolas, monospace; letter-spacing: 1px; }
+.setg.sub { margin-left: 14px; }
+.setg.on { background: var(--soft-on); color: #fff; border-color: var(--soft-on); }
+.setg.info { margin-top: 6px; color: var(--title); }
+.setmain { overflow: auto; min-height: 0; padding-right: 4px; }
+.sethead { color: var(--title); font: bold 16px Consolas, monospace; letter-spacing: 2px; border-bottom: 1px solid #223; padding-bottom: 4px; margin-bottom: 6px; }
+.sethead small { color: var(--dim); font-size: 11px; letter-spacing: 0; margin-left: 8px; }
+.srow { border: 1px solid #1a2530; border-left: 3px solid #1a2530; border-radius: 3px; padding: 6px 8px; margin-bottom: 5px; background: #070c10; }
+.srow.changed { border-left-color: var(--title); background: #12110a; }
+.shead { display: flex; align-items: center; gap: 8px; }
+.snum { color: var(--info); font: bold 12px Consolas, monospace; min-width: 42px; }
+.sname { color: #e8e8e8; font: 13px Arial, sans-serif; flex: 1; }
+.sreb { color: var(--hold); font: bold 10px Arial; border: 1px solid var(--hold); border-radius: 3px; padding: 1px 4px; }
+.shelp { background: #1d2a36; color: var(--info); border-radius: 50%; width: 22px; height: 22px; font: bold 12px Arial; padding: 0; }
+.sedit { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-top: 5px; }
+.schip { background: #1d2a36; color: #b8c4c8; border: 1px solid #36506a; border-radius: 3px; padding: 5px 10px; font: bold 12px Arial; }
+.schip.on { background: var(--title); color: #05080a; border-color: var(--title); }
+.sinput { background: #111a22; border: 1px solid #2a3a4a; color: #fff; padding: 5px 8px; font: 14px Consolas, monospace; width: 9em; }
+.sinput.wide { width: min(100%, 22em); }
+.srow.changed .sinput { border-color: #8a7a2a; }
+.sunit { color: var(--dim); font-size: 12px; }
+.shint { color: var(--info); font: 12px Consolas, monospace; }
+.serr { color: #ff5a4a; font-size: 12px; margin-top: 3px; }
+.sdesc { color: #9aa; font: 12px/1.4 Arial, sans-serif; margin-top: 5px; white-space: pre-wrap; border-top: 1px dashed #223; padding-top: 4px; }
+.setinfo { font: 13px/1.6 Consolas, monospace; color: #cfd8dc; }
+.setfoot { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: var(--g); border-top: 1px solid #223; padding-top: var(--g); }
+.setfoot button { background: #1d2a36; color: #fff; border: 1px solid #36506a; border-radius: 4px; padding: 8px 14px; font: bold 13px Arial; }
+.setfoot button.go { background: var(--go); border-color: var(--go); }
+.setnote { color: var(--title); font-size: 13px; }
+.setwebui { margin-left: auto; color: var(--dim); font-size: 12px; }
+@media (max-width: 760px) { .setcols { grid-template-columns: 1fr; } .setnav { flex-direction: row; flex-wrap: wrap; max-height: 30vh; } .setsearch { width: 100%; } .setg.sub { margin-left: 0; } }
+.setnav [data-set-groups] { display: flex; flex-direction: column; gap: 3px; }
+@media (max-width: 760px) { .setnav [data-set-groups] { flex-direction: row; flex-wrap: wrap; } }
+.abouttext .coffee { display: inline-block; background: var(--title); color: #05080a; font: bold 18px Consolas, monospace; letter-spacing: 2px;
+  padding: 10px 22px; border-radius: 6px; border: 2px solid #05080a; box-shadow: 3px 3px 0 #000; text-decoration: none; margin: 4px 0 10px; }
+.abouttext .coffee:hover { background: #fff3b0; }
