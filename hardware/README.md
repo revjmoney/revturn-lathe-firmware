@@ -20,7 +20,8 @@ Two families are on the machine:
 - **The bed ends (R4):** a headstock-end frame and a tailstock-end frame that clamp two round rails and carry
   the Z leadscrew, with the Z motor behind the tailstock frame on a short belt.
 - **The cross slide (R9, "long X"):** a saddle that rides the Z rails and carries its own X rails and leadscrew,
-  a top plate that rides X, and a belt-drive bracket for the X motor.
+  a top plate that rides X, and an **inline X motor mount**: the NEMA 17 sits in line with the X screw, 1:1 through a
+  coupler, on split clamps that grip the X rail ends. (The original R9 belt-drive bracket is still here as an option.)
 
 There is also an **option for X: direct drive (R8)**, with the motor in line with the X screw on a 1:1 Oldham
 coupler instead of a belt. See [Option: direct-drive X](#option-direct-drive-x-r8-11-coupler) below.
@@ -34,8 +35,9 @@ coupler instead of a belt. See [Option: direct-drive X](#option-direct-drive-x-r
 | `rail_clamp_cap_x4` | 4 | Bolt-down caps that clamp the rails (two M5 each) | 34 x 25 x 15 | see set total |
 | `cross_slide_saddle_r9` | 1 | Saddle on the Z rails: brass nut mount, X rail lands, both X towers | 200 wide | 8 h 00 |
 | `cross_slide_top_plate_r9` | 1 | Rides the X rails, tool platform grid on top | 45 x 61 x 24 | 2 h 11 |
-| `x_belt_motor_bracket_r9` | 1 | NEMA 17 bracket on the tower's back face, belt drive to the X screw | | 1 h 25 |
-| `pulley_30t_motor_bore5_r9` | 1 | GT2 30T, 5 mm bore, short hub (X motor) | 23 dia | 21 min |
+| `x_motor_inline_rail_mount_r9` | 1 | **On the lathe.** NEMA 17 in line with the X screw, 1:1 through an Ender 3 Pro Z coupler (5 to 8 mm). Two split clamp collars on the X rail ends (M3 pinch screws) plus the tower's four M4 side holes | 54 x 70 x 57 | |
+| `x_belt_motor_bracket_r9` | 1 | *Option:* the original R9 belt drive, NEMA 17 on the tower's back face, same four M4 holes | | 1 h 25 |
+| `pulley_30t_motor_bore5_r9` | 1 | *Option, belt drive only:* GT2 30T, 5 mm bore, short hub (X motor) | 23 dia | 21 min |
 | `pulley_30t_screw_bore8` | 1+ | GT2 30T, 8 mm bore (leadscrew) | 23 dia | |
 | `thrust_washer_x2` | 2 per screw | 11.4 mm washer between shaft collar and bearing inner race | 11 dia x 2 | 4 min (pair) |
 
@@ -61,9 +63,11 @@ Dimensioned drawings: [`drawings/drawings_bases.png`](drawings/drawings_bases.pn
 | 8 mm T8 leadscrew + brass flange nut | 2 | Z and X; X cut to 245 mm |
 | 688ZZ bearing (8 x 16 x 5) | 4+ | screw supports (16.15 mm press pockets) |
 | 8 mm shaft collar | 2 per screw | with the printed thrust washers, takes the axial load |
-| GT2 6 mm closed-loop belt | 1 per axis | X (R9): **186 mm** loop, 30T:30T, centres 63.0 mm |
+| Ender 3 Pro style Z coupler, 5 mm to 8 mm, about 25 mm long | 1 | X, inline mount (fits inside a 20 mm envelope) |
+| M3 x 20 mm screws + M3 nuts | 4 | inline mount pinch screws (nuts captive underneath) |
+| GT2 6 mm closed-loop belt | 1 | Z; X only with the belt bracket option: **186 mm** loop, 30T:30T, centres 63.0 mm |
 | M5 heat-set inserts + M5 x 25 cap screws | 8 | rail clamp caps |
-| M4 screws (tapped) | 4 | X motor bracket to the saddle tower |
+| M4 x 16 mm screws (tapped) + thin washers | 4 | X motor mount (inline or belt) to the saddle tower |
 | M3 screws (tapped) | 4 per nut | brass nut flanges; tap the threads, don't drive screws into bare PLA |
 | NEMA 17 stepper | 1 | X |
 | 1/4 in bolts + washers | 10 | frame feet to the bench (slotted pads) |
@@ -72,6 +76,16 @@ Dimensioned drawings: [`drawings/drawings_bases.png`](drawings/drawings_bases.pn
 on a separate off-the-shelf NEMA 17 mount (not part of these files), with its own pulleys. So the lathe as built
 uses its own Z belt ratio. Use the measured steps per mm from the
 [settings table](../README.md#machine-settings-calibrated-on-the-real-lathe), not the 1:1 design ratio.
+
+## About the inline X mount
+
+Drawing: [`drawings/x_motor_inline_rail_mount_r9.png`](drawings/x_motor_inline_rail_mount_r9.png). Fit notes, in inches:
+- Rails 0.393 in on 1.496 in centres; keep both about 1.181 in beyond the tower (shorten the long one to match).
+- Bores 0.397 in nominal; collar length 1.093 in; motor plate 1.250 in beyond the tower.
+- Coupler envelope 0.787 in diameter, about 0.984 in long.
+- Print motor face down with build-plate supports; clean the clamp slits fully so the jaws close. Tighten the pinch
+  screws only enough to grip; do not crush the jaws. The screw's own bearings and collars still take the thrust.
+- Many NEMA 17s have a 0.200 in D-shaft, not 5 mm: shim it inside the coupler (a few wraps of paper worked here).
 
 ## Option: direct-drive X (R8, 1:1 coupler)
 
