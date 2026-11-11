@@ -105,7 +105,7 @@
       <div class="body">
         <h2>Built like a machine control</h2>
         <div class="grid">
-          <div class="card"><h3>CONVERSATIONAL CYCLES</h3><p>Face, turn (taper, chamfer, radius), bore, thread, groove / part-off, peck drill, polygon flats and index. Fill in the form, GO previews the toolpath, GO again runs it.</p></div>
+          <div class="card"><h3>CONVERSATIONAL CYCLES <span style="color:var(--hold)">(BETA)</span></h3><p>Face, turn (taper, chamfer, radius), bore, thread, groove / part-off, peck drill, polygon flats and index. Fill in the form, GO previews the toolpath, GO again runs it. Not cut-tested on real stock yet: DRY RUN first.</p></div>
           <div class="card"><h3>PROGRAMS</h3><p>Chain cycles and raw g-code steps into a program, save it on the lathe, import Fusion 360 lathe posts. Dry run (air cut) first if you like.</p></div>
           <div class="card"><h3>LIVE BACKPLOT</h3><p>Watch the tool trace over the planned path with a live tool marker, and a one-line DRO across the top of RUN with set and actual feed and rpm.</p></div>
           <div class="card"><h3>HOLD / GO / STOP</h3><p>Always on screen, on every screen. Feed, spindle and rapid overrides. Alarms explained in plain words, with RESET and UNLOCK.</p></div>
@@ -157,6 +157,7 @@
               <tr><td>Limits (spare)</td><td><code>GPIO 32</code>, <code>33</code>, <code>27</code></td><td>X, Y, Z limit inputs, not wired by default</td></tr>
             </tbody>
           </table>
+          <p class="note"><b>BETA:</b> the conversational cycles have not been cut-tested on real stock yet. Preview first (the first GO only previews), run DRY RUN in the air, set your stroke limits and turn LIMITS on, and do a scratch pass before threading to check the thread direction.</p>
           <p class="note">Every machine is different: after wiring, set steps per mm (or per degree), max rates and
             acceleration for your screws, belts and motors in <b>SETTINGS</b>. The GitHub page has the settings from the
             REVTURN lathe as a starting point.</p>

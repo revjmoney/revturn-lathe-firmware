@@ -9,6 +9,8 @@ REVTURN is made by **[JMSCNC](https://jmscnc.com)** (Rev. J. Money). Copyright 2
 
 **🌐 [Website](https://revjmoney.github.io/revturn-lathe-firmware/) · [jmscnc.com/revturn](https://jmscnc.com/revturn/) · [Buy a preflashed board ($125)](https://jmscnc.com/product/revturn-lathe-controller/) · [☕ Buy me a coffee](https://buymeacoffee.com/revjmoney)**
 
+> **⚠ BETA:** the conversational cycles have not been cut-tested on real stock yet. Preview first (the first GO only previews), run DRY RUN in the air, set your stroke limits and turn LIMITS on, and do a scratch pass before threading to check the thread direction. Their g-code is checked by automated tests and every axis has run on the REVTURN lathe, but no cycle has cut material yet.
+
 ![REVTURN RUN screen](site/media/screen-run.png)
 
 From the maker of **[RotatoCAM](https://rotatocam.com)**: 4- and 3-axis CAM for DIY CNC. *Spin the stock. Read the signal.*
