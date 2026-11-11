@@ -164,6 +164,22 @@ chuck and motors. `REVTURN_animate.FCMacro` plays a g-code or lathe-screen progr
 stock panel (size from the program, or type it in). See [`assembly/README.md`](assembly/README.md).
 `source/build_lathe_assembly.py` is the build script (it reads the part STEPs from Rev's own folders).
 
+## FreeCAD sources (edit and rebuild every part)
+Every printed part is built by a FreeCAD 1.1 python script, so you can change a number and rebuild instead of
+editing a mesh. Run them with FreeCAD's own python (Windows example):
+`"C:/Program Files/FreeCAD 1.1/bin/python.exe" build_r9.py`. Each script checks its own parts (valid closed
+solids, fits, clearances) and writes STEP + STL next to itself in `out/`.
+
+| What | Source | Notes |
+|---|---|---|
+| Bed ends (R4), R8 cross slide, fit coupons, pulleys | [`source/build_axis_bases.py`](source/build_axis_bases.py) | All the numbers are at the top (`P = {...}`); writes `out/` |
+| R9 cross slide (long X), belt bracket | [`source/build_r9.py`](source/build_r9.py) | Runs `build_axis_bases.py` with the long-X options; keep both in one folder |
+| Tool post | [`source/build_tool_post.py`](source/build_tool_post.py) | 132 fit checks. Set `OUT` near the top to where you want the files |
+| Whole-lathe assembly | [`source/build_lathe_assembly.py`](source/build_lathe_assembly.py) | Reads the part STEPs; set its folder paths near the top |
+| X motor mount, all four versions | [`freecad/x-motor-mount/`](freecad/x-motor-mount/) | One self-contained folder each: build script, helpers, `parameters.json`, `baseline/` STEP inputs, the `.FCStd` files and `PRINT-AND-FIT.txt`. `split-rail-mount-no-side-tie` is the one on the lathe (107 checks), `split-rail-mount` adds the side flange, plus the earlier `inline-rail-mount` and `solid-half-rail-mount` |
+
+Checked 2026-11-11: `build_r9.py` and the no-side-tie mount build cleanly from these folders and pass their checks.
+
 ## Printing notes (learned on the real parts)
 - **Frames:** PLA+. **Saddle and top plate:** plain PLA worked; same filament roll for a part and its fit test.
 - **Motor bracket:** ABS+ if you can. A NEMA 17 runs 45 to 80 °C at the case and PLA softens around 55 to 60 °C.

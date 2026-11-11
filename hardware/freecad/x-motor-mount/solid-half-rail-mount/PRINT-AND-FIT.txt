@@ -1,0 +1,84 @@
+R9 ONE-PIECE INLINE MOTOR MOUNT — SOLID HALF SEATS + SIDE TIE
+===========================================================
+
+Print ONE:
+inline_motor_mount_SOLID_HALF_SIDE_TIE_PRINT.stl
+
+Requested revision:
+- Exactly 1.250" between outside pulley-end tower face and the INSIDE
+  face of the motor mounting plate.
+- Two solid lower half-round rail seats, integral with the bracket.
+  Open above the rail centreline; no separate caps or rail-clamp screws.
+- Four original R9 M4 side holes, unchanged in position.
+- 0.250" side flange with a continuous web joining the positive rail seat.
+- 0.250" motor plate, four corner gussets and rounded exposed edges.
+- Motor body depth updated to your measured approximately 1.750".
+
+Fit dimensions, in inches:
+- Original model rail diameter: 0.393"; centre spacing: 1.496".
+- Half-seat diameter: about 0.397" (0.004" diametral clearance).
+- Rail contact length: 0.787".
+- Seats span 0.157" to 0.945" beyond tower face.
+- Keep both rail projections about 1.181" beyond tower face:
+  shorten the long rail to match the existing short rail.
+- Motor plate inside face: 1.250" beyond tower.
+- Motor front mounting face: 1.500" beyond tower.
+- Coupler model length: 0.984", outer envelope diameter: 0.787".
+- Central relief diameter: 0.945", providing 0.079" radial clearance
+  to the modeled coupler through the rail-seat area.
+- Coupler starts 0.043" beyond tower face.
+- Screw tip projects approximately 0.516" beyond tower.
+- Each shaft engages approximately 0.472" into the coupler.
+- Gap between shaft ends: about 0.039".
+
+These axial fit figures assume a motor shaft projecting 0.945" and a
+0.984"-long coupler. The donor motor's exposed shaft length is still
+unmeasured. Check that dimension and actual coupler bore depths before
+printing or setting the screw length. For a different shaft/coupler,
+edit parameters.json and rebuild while retaining the 1.250" plate gap.
+
+Attachment:
+- Four original side M4 holes retain the mount. Their rectangular
+  pattern is about 0.356" along X by 0.682" vertically.
+  The pattern centre is 0.375" inboard of the tower's outside face,
+  centred vertically on the original screw axis.
+- Side flange clearance holes are approximately 0.177" diameter.
+  Metric hardware is retained because it matches the existing R9 holes.
+- Nominal four M4 x 16 mm screws with thin flat washers suit the
+  0.250" flange and modeled 11 mm original thread depth. Verify the
+  actual tower threads and avoid bottoming screws.
+- Four M3 motor screws retain the original 31 mm NEMA 17 pattern.
+  M3 x 10 mm gives about 0.144" motor-thread engagement through this
+  plate, before washers; verify the motor's allowable thread depth.
+- With the four side screws installed, this bracket has a FIXED axial
+  position. The previous sliding rail-clamp adjustment is superseded.
+- Place the lower half seats beneath the projecting rails and seat
+  the flange against the original +Y tower face. Start all four side
+  screws loosely, check smooth screw rotation and coupling alignment,
+  then tighten evenly.
+- Preserve the original fixed-end bearings and collars. The coupler
+  and motor do not replace the screw's thrust retention.
+- Coupling setscrews remain accessible from above.
+
+Printing:
+- Supplied PRINT STL is already oriented with motor face down.
+- Use build-plate supports; the rail seats and side flange overhang.
+- Verification uses the saved Ender profile, approximately 0.012" layers,
+  five perimeters and 35% infill. Apply those settings in your slicer.
+- Remove supports and deburr all locating faces/holes before fitting.
+- See slice-verification.json for the final time/material estimate.
+
+Files:
+- PRINT STL: one component, ready for your slicer.
+- *_assembly.stl / main STEP: original R9 assembly coordinates.
+- Main FCStd: only the printable bracket.
+- inline_side_tie_assembly.FCStd / .step: bracket plus reference saddle,
+  slide, motor, coupler, shaft, screw and rails. Reference hardware is
+  NOT FOR PRINT; it is a clearance envelope, not component detail CAD.
+- parameters.json / build_solid_half_mount.py: editable dimension source.
+- verification.json: geometry, full travel, hole alignment, screw access,
+  coupling clearance, connected solid and mesh checks.
+- solid-half-mount-preview.png: assembly and inch-dimensioned layout.
+
+This is a geometric fit-checked prototype. Actual hardware fit, printed
+stiffness, torque, cutting load and durability remain untested.

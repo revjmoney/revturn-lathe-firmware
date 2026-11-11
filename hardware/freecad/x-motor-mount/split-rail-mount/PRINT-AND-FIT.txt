@@ -1,0 +1,70 @@
+R9 INLINE MOTOR MOUNT - EXTENDED SINGLE-SPLIT RAIL COLLARS
+
+Print ONE inline_motor_mount_EXTENDED_SPLIT_CLAMPS_PRINT.stl.
+
+Both integral rail supports now run from 0.157" beyond the outside
+tower face all the way to the inside motor plate at 1.250".
+Each encloses its rail and has an approximately 0.024" radial slit.
+Two vertical pinch screws per rail tighten the outer jaws. No separate caps.
+The original four side M4 holes, 0.250" flange, 0.250" motor plate,
+four corner gussets and rounded exposed edges remain.
+
+Fit, in inches:
+- Rail diameter 0.393"; centre spacing 1.496".
+- Nominal bore diameter 0.397" (0.004" diametral clearance).
+- Collar length 1.093"; actual rail engagement 1.024" with 1.181" rails.
+- Keep both rails approximately 1.181" beyond tower; shorten the long
+  rail to match the short one. Rail tips end 0.069" before the plate.
+- Inside motor plate face 1.250" beyond tower; motor front face 1.500".
+- Motor body length approximately 1.750".
+- Coupler length assumed 0.984"; envelope diameter 0.787".
+- Central opening 0.945" diameter, at least 0.079" radial clearance.
+- Coupler starts 0.043" beyond tower; screw projection nominal 0.516".
+- Shaft engagement 0.472" each; shaft end gap 0.039".
+
+Hardware:
+- Four M3 pinch screws, nominal M3 x 20 mm, four M3 nuts, no washers
+  in the recessed heads. Hex pockets approximately 0.224" across flats
+  and 0.098" deep. Check actual nut fit and bolt length.
+- Four original M4 side screws, nominal M4 x 16 mm with thin washers.
+  Avoid bottoming in the original tower threads.
+- Four M3 motor screws, nominal M3 x 10 mm. Check allowed motor thread depth.
+Existing metric fastener sizes are retained for compatibility.
+
+Assembly:
+1. Clean support material out of bores, nut pockets, head recesses and
+   the full clamp slits. Ensure the jaws are free before inserting rails.
+2. Insert the four captive nuts from underneath and start pinch screws
+   loosely. Slide the mount onto the rail ends toward the tower.
+3. Seat the side flange against the tower and start the four M4 screws.
+4. Fit motor/coupler, check smooth screw rotation, then tighten side
+   screws evenly. Tighten pinch screws gradually and only enough to grip.
+   Do not crush the printed jaws or bottom the slit.
+5. Preserve original fixed-end bearings/collars for leadscrew thrust.
+Coupling setscrews and pinch heads are accessible from above.
+
+Shaft projection remains unmeasured: modeled at 0.945" from the motor
+front. Actual coupler length and bore depths are also unconfirmed.
+Check these before printing or setting screw length. The 1.250" plate
+gap is fixed by the four side attachment holes.
+
+Printing:
+PRINT STL is oriented motor mounting face down. Use build-plate supports.
+The verification uses the saved Ender profile at approximately 0.012"
+layers, five perimeters and 35% infill. See slice-verification.json.
+Deburr locating faces; do not enlarge the bores unnecessarily.
+
+Files:
+- PRINT STL: single printable bracket.
+- Main STEP/FCStd and assembly STL: original R9 coordinates.
+- inline_side_tie_assembly STEP/FCStd: bracket plus reference hardware
+  and original saddle/slide, for inspection only.
+- build_split_mount.py, parameters.json, helpers and frozen R9 source:
+  editable construction source.
+- verification.json: clearance, full travel, fastener access, material,
+  solid and mesh checks.
+- split-clamp-mount-preview.png: assembly and inch layout.
+
+Geometric and slicer checks cannot establish printed clamp compliance,
+physical hardware fit, cutting stiffness or durability. This remains
+a prototype requiring a gentle physical fit and clamp test.

@@ -1,0 +1,9 @@
+# build outputs (every script regenerates these)
+source/out/
+freecad/**/preview_scene.json
+freecad/**/verification.json
+freecad/**/*.FCBak
+freecad/**/build.out
+freecad/**/*_PRINT.stl
+freecad/**/*_assembly.stl
+freecad/**/inline_*.step

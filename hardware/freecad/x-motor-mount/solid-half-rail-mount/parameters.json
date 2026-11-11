@@ -1,0 +1,18 @@
+{
+  "clearance_from_tower_to_inner_motor_plate_in": 1.25,
+  "rail_projection_mm": 30.0,
+  "rail_seat_offset_mm": 4.0,
+  "rail_seat_length_mm": 20.0,
+  "rail_bore_clearance_mm": 0.10,
+  "coupler_length_mm": 25.0,
+  "coupler_diameter_envelope_mm": 20.0,
+  "coupler_relief_diameter_mm": 24.0,
+  "shaft_end_gap_mm": 1.0,
+  "motor_shaft_projection_mm": 24.0,
+  "motor_body_depth_in": 1.75,
+  "motor_plate_thickness_in": 0.25,
+  "side_flange_thickness_in": 0.25,
+  "side_hole_clearance_mm": 4.5,
+  "screw_lead_assumed_mm": 4.0,
+  "attachment": "Integral lower half-round seats plus original four R9 side holes; fixed axial placement"
+}

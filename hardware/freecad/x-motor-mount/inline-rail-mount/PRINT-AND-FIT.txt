@@ -1,0 +1,103 @@
+R9 INLINE RAIL MOTOR MOUNT — Ender 3 Pro Z coupler
+================================================
+
+Print:
+  1 x inline_motor_mount.stl
+  2 x rail_clamp_cap_PRINT_2.stl
+
+These STLs already sit on the print bed:
+- Main bracket: motor face down. Use build-plate supports.
+- Caps: flat outer top down. No supports.
+- Saved Ender profile was checked at 0.3 mm layers, 5 perimeters, 35% infill.
+  The STL does not contain these settings: set them in your slicer.
+- Slice estimates: main 2h 47m 37s, each cap 21m 37s.
+  Total for all three pieces: about 3h 31m.
+- Largest print footprint: 54.3 x 67 mm, height 59.5 mm.
+- Deburr/clean supports and test the rail seats before tightening.
+  The rail seat is 10.0322 mm for the R9 model's 9.9822 mm rails.
+  Tightening the caps closes the 0.4 mm split gap.
+
+Hardware:
+- Your Ender 3 Pro Z coupler, 5 mm motor bore / 8 mm screw bore.
+  Axial layout assumes 25 mm length. Clearance model is 20 mm OD;
+  it also passes with a 24 mm OD envelope.
+- Four M3 x 20 mm cap screws, four M3 nuts (5.5 mm across flats,
+  up to 2.4 mm thick) and thin M3 washers. Hex pockets are 5.7 mm AF.
+  Check actual screw protrusion and hardware sizes during assembly.
+- Four M3 motor screws. With the 6.35 mm plate, M3 x 10 provides
+  about 3.65 mm motor-thread engagement; verify the motor's permissible
+  thread depth before choosing screw length.
+- NEMA 17 pattern: 31 mm centres, 3.4 mm clearance holes,
+  23.5 mm pilot opening. Motor body envelope 42.3 mm square.
+- Actual donor motor shaft projection is unmeasured: source uses 24 mm.
+
+Fit:
+1. Establish the outside face of the pulley-end tower as the datum.
+   Keep both rails extending about 30 mm beyond this face.
+   The existing 140 mm projection must be shortened before fitting:
+   it intersects the inline motor body. Measure on the assembled machine
+   before making the cut; do not trim into the tower's rail support.
+2. Retain the R9 screw bearings and the fixed-end collars.
+   The pulley-end tower is the floating bearing end in this R9 source.
+   The coupling/motor must not become the screw's thrust bearing.
+3. Place the bracket's lower clamp halves under the rail extensions,
+   fit the two identical caps above and insert the four captive nuts.
+   Turn one cap 180 degrees in the horizontal plane so the small inner
+   leadscrew reliefs both face towards the screw.
+   Start the screws loosely; both rail seats must contact evenly.
+4. Motor faces the slide, shaft inward along the screw (-X).
+   Slide the entire bracket along the rail ends to set axial fit, then
+   tighten caps evenly. No original tower mounting holes are required
+   for this rail-clamped direct-drive revision.
+5. Nominal clamp grip: 4–24 mm beyond tower. Permitted positions:
+   1–21 mm through 10–30 mm beyond tower, keeping the whole 20 mm grip.
+   This gives 9 mm total physical axial adjustment.
+6. At the nominal position the screw tip projects 38.5 mm beyond the
+   tower, with 12 mm coupling engagement on each shaft and 1 mm
+   between shaft ends. At the adjustment extremes the corresponding
+   screw projection is 35.5–44.5 mm. These dimensions assume the
+   25 mm coupler and 24 mm motor shaft; adjust the screw projection
+   and bracket position together, without shifting the screw's bearing
+   retention or reducing travel.
+7. Coupling setscrews are accessible from above; orient them to suit
+   your tool. Verify shaft bore fit, engagement and true running by
+   turning the screw manually before powering the motor.
+
+Rounded structure:
+- Four motor plate corner gussets.
+- 2 mm outer plate/cap corner radii.
+- 0.6 mm rounds on selected exposed edges.
+- Functional rail seats, split faces, bolt bores and nut pockets retained.
+
+Direct-drive setup:
+- Assumed screw lead: 4 mm per revolution (confirm by measurement).
+- A 200-full-step/revolution motor gives 0.02 mm slide motion per
+  full step, corresponding to 0.04 mm change in turned diameter.
+- Example with 16 microsteps: 800 commanded steps/mm. Confirm the
+  donor motor's actual step angle and driver microstep setting.
+- Motor torque, printed clamp stiffness and cutting load have not been
+  physically verified. The original belt reduction had more screw torque.
+  Start with low acceleration and light cuts, and verify no lost position.
+
+Files:
+- STEP files for the main bracket and one cap: original assembly coordinates.
+- inline_mount_assembly.FCStd / .step include all three printed pieces plus
+  reference saddle, slide, motor, rails, leadscrew and coupler.
+  Reference hardware is NOT FOR PRINT.
+- *_assembly.stl files are also in original assembly coordinates,
+  not the supplied print orientation.
+- parameters.json + build_inline_mount.py: editable dimension source.
+  Rebuild using FreeCAD 1.1's bundled Python, importing FreeCAD first.
+  Different coupling length or motor shaft projection requires a rebuild;
+  the current physical print does not adjust those independently.
+- verification.json: 239 passing geometry/mesh/access/travel checks.
+- slice-verification.json: both parts successfully sliced.
+- inline-mount-preview.png: assembly and dimensional layout.
+
+Source for the stock-style Ender coupler:
+https://partsbuilt.com/z-motor-coupling-2-pack-creality/
+Listed 5/8 mm bores, 25 mm length, 13.8 mm OD.
+The larger 20 mm model envelope leaves room for common replacement styles.
+
+This is a geometric fit-checked prototype; no physical load, durability,
+thermal or print-fit test has been performed.
