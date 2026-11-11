@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>REVTURN by JMSCNC: a touch-screen CNC lathe controller on an ESP32</title>
-<meta name="description" content="REVTURN is a ProtoTRAK / Fanuc style CNC lathe control screen built into grblHAL on a $5 ESP32. Conversational cycles, threading by Z and C sync, live backplot, every grblHAL setting, open source. Buy one preflashed from JMSCNC.">
+<meta name="description" content="REVTURN is a ProtoTRAK / Fanuc style CNC lathe control screen built into grblHAL on an ESP32. Conversational cycles, threading by Z and C sync, live backplot, every grblHAL setting, open source. Buy one preflashed from JMSCNC.">
 <meta name="theme-color" content="#2b2f33">
 <meta name="author" content="JMSCNC / Rev. J. Money">
 <meta property="og:title" content="REVTURN by JMSCNC">
-<meta property="og:description" content="A touch-screen CNC lathe controller on a $5 ESP32: conversational cycles, threading, live backplot, phone or tablet, no PC.">
+<meta property="og:description" content="A touch-screen CNC lathe controller on an ESP32: conversational cycles, threading, live backplot, phone or tablet, no PC.">
 <meta property="og:image" content="https://revjmoney.github.io/revturn-lathe-firmware/media/screen-run.png">
 <meta property="og:url" content="https://revjmoney.github.io/revturn-lathe-firmware/">
 <link rel="icon" type="image/png" href="media/favicon.png">
@@ -43,7 +43,7 @@
         <div>
           <h1 class="sr-only" style="position:absolute;left:-999px">REVTURN by JMSCNC</h1>
           <img class="hero-logo" src="media/revturn-header.png" alt="REVTURN by JMSCNC" width="742" height="200">
-          <p class="tag">A touch-screen CNC lathe controller on a $5 ESP32.</p>
+          <p class="tag">A touch-screen CNC lathe controller on an ESP32.</p>
           <p class="lead">ProtoTRAK / Fanuc style conversational control, built into the <b>grblHAL</b> firmware and served
             from the lathe itself. Open it on a phone, a tablet by the machine or a PC. No app, no sender, no cloud.</p>
           <div class="dro" aria-hidden="true">
@@ -69,7 +69,7 @@
       <div class="bar">[ WHAT IT IS ]</div>
       <div class="body">
         <h2>A real lathe control, not a g-code sender</h2>
-        <p class="lead">REVTURN turns a $5 ESP32 into the brains of a CNC lathe. The motion runs on <b>grblHAL</b>, the
+        <p class="lead">REVTURN turns an ESP32 into the brains of a CNC lathe. The motion runs on <b>grblHAL</b>, the
           proven open-source CNC firmware. On top of it sits a full control screen, served by the ESP32 over WiFi: big
           DRO, HOLD / GO / STOP always on screen, conversational cycles you fill in like a ProtoTRAK, programs, a live
           backplot and every machine setting, all in one look.</p>
@@ -211,6 +211,45 @@
   </div>
 </section>
 
+<section id="sing">
+  <div class="wrap">
+    <div class="win">
+      <div class="bar">[ SHAKE AND SING ]</div>
+      <div class="body">
+        <h2>Every motor, every note, measured</h2>
+        <p class="lead">A stepper sings at its full-step rate, so every feed is a musical note. We laid a phone on the cross
+          slide (phyphox, about 400 readings a second, over WiFi) and walked each motor up in quarter tones from C2, then
+          played 19 chords with all three motors at once, to find out where the scary sounds live.</p>
+        <table>
+          <thead><tr><th>Motor</th><th>Plays</th><th>Pitch</th><th>Smooth notes</th></tr></thead>
+          <tbody>
+            <tr><td>X (cross slide)</td><td>C2 to G#5, 3.8 octaves</td><td>21.17 Hz per ipm</td><td>D2, D#2, D3, F#3 to A#3, F#5 to G#5</td></tr>
+            <tr><td>Z (carriage)</td><td>C2 to C#5, 3.2 octaves</td><td>25.56 Hz per ipm</td><td>C2, and D#4 to C#5 (11 in a row)</td></tr>
+            <tr><td>C (chuck)</td><td>C2 to E7, 5.4 octaves</td><td>10 Hz per rpm</td><td>21 notes, most of F3 to D5</td></tr>
+          </tbody>
+        </table>
+        <div class="grid" style="margin-top:14px">
+          <div class="card"><h3>Z IS THE SCARY ONE</h3><p>About 3 m/s² across 4 to 10 ipm, right at its own pitch. Smooth from 12 ipm up. 32x microstepping did not change it: that is the TB6600 and the motor.</p></div>
+          <div class="card"><h3>X SINGS AT HALF PITCH</h3><p>Most of X's shake sits at half its step rate, the sign of a driver feeding its two coils unevenly. Worst at 22.7 to 25 ipm.</p></div>
+          <div class="card"><h3>THE CHUCK IS QUIET</h3><p>A sixth of X and a fourteenth of Z. Above about 18 rpm it rings the frame at 25 to 30, 50 to 55 and 90 to 110 Hz.</p></div>
+          <div class="card"><h3>CHORDS ADD NOTHING SCARY</h3><p>All the motors together shake about as hard as the loudest one alone. Beats wobble, they don't hit harder.</p></div>
+        </div>
+        <div class="pics" style="margin-top:14px">
+          <figure><img class="zoomable" src="media/res-z-waterfall.jpg" alt="Z axis vibration spectrum for every quarter tone" loading="lazy"><figcaption><b>Z waterfall.</b> One row per quarter tone, bright = strong. The diagonal lines are the motor's pitch, folded at 200 Hz.</figcaption></figure>
+          <figure><img class="zoomable" src="media/res-x-waterfall.jpg" alt="X axis vibration spectrum for every quarter tone" loading="lazy"><figcaption><b>X waterfall.</b> The brightest line is half the motor's pitch.</figcaption></figure>
+          <figure><img class="zoomable" src="media/res-c-waterfall.jpg" alt="Spindle vibration spectrum for every quarter tone" loading="lazy"><figcaption><b>Chuck waterfall.</b> The fixed vertical bands are the lathe frame ringing, not the motor.</figcaption></figure>
+          <figure><img class="zoomable" src="media/res-chords.png" alt="Shake for each of the 19 chords" loading="lazy"><figcaption><b>Chords.</b> Loudest: all three motors at their resonance together.</figcaption></figure>
+        </div>
+        <div class="ctas" style="margin-top:14px">
+          <a class="btn soft" href="https://github.com/revjmoney/revturn-lathe-firmware/blob/main/tools/resonance/FINDINGS.md">ALL THE FINDINGS<small>every note of every axis</small></a>
+          <a class="btn go" href="https://github.com/revjmoney/revturn-lathe-firmware/releases/tag/resonance-2026-11-11">DOWNLOAD THE DATA<small>raw readings, 14 MB zip</small></a>
+          <a class="btn soft" href="https://github.com/revjmoney/revturn-lathe-firmware/tree/main/tools/resonance">THE TOOLS<small>run it on your machine</small></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="coffee">
   <div class="wrap">
     <div class="win">
@@ -261,7 +300,7 @@
 
 <nav class="softbar" aria-label="Sections">
   <a href="#top">HOME</a><a href="#screens">SCREENS</a><a href="#features">FEATURES</a><a class="buy" href="#buy">BUY</a>
-  <a href="#build">BUILD</a><a href="#lathe">LATHE</a><a href="#coffee">COFFEE</a><a href="https://github.com/revjmoney/revturn-lathe-firmware">GITHUB</a>
+  <a href="#build">BUILD</a><a href="#lathe">LATHE</a><a href="#sing">SING</a><a href="#coffee">COFFEE</a><a href="https://github.com/revjmoney/revturn-lathe-firmware">GITHUB</a>
 </nav>
 
 <dialog class="zoom" data-zoom><div class="bar"><span data-zoom-title></span><button data-zoom-close>CLOSE</button></div><img data-zoom-img alt=""></dialog>

@@ -1,0 +1,135 @@
+[
+ {
+  "label": "X+Z both at their resonance, 1 Hz beat",
+  "together": 3.1595,
+  "loudest_alone": 2.9675,
+  "ratio": 1.0647009267059815,
+  "beat_depth": 0.27511734014849476
+ },
+ {
+  "label": "X+Z near unison, 2 Hz beat",
+  "together": 2.8647,
+  "loudest_alone": 3.0336,
+  "ratio": 0.9443235759493671,
+  "beat_depth": 0.22795571810411783
+ },
+ {
+  "label": "X+Z 10 Hz beat",
+  "together": 3.0208,
+  "loudest_alone": 2.9142,
+  "ratio": 1.036579507240409,
+  "beat_depth": 0.21311829621110429
+ },
+ {
+  "label": "X+Z minor second, a clash",
+  "together": 2.5785,
+  "loudest_alone": 2.9142,
+  "ratio": 0.8848054354539839,
+  "beat_depth": 0.24614443333277347
+ },
+ {
+  "label": "X+Z perfect fifth",
+  "together": 1.1818,
+  "loudest_alone": 0.7548,
+  "ratio": 1.5657127715951245,
+  "beat_depth": 0.42258232661183204
+ },
+ {
+  "label": "X+Z octave",
+  "together": 0.8314,
+  "loudest_alone": 0.7858,
+  "ratio": 1.0580300330872996,
+  "beat_depth": 0.532804162245702
+ },
+ {
+  "label": "X + spindle, 2 Hz beat",
+  "together": 0.5404,
+  "loudest_alone": 0.5786,
+  "ratio": 0.9339785689595576,
+  "beat_depth": 0.1848081774627015
+ },
+ {
+  "label": "Z + spindle, 2 Hz beat",
+  "together": 2.9063,
+  "loudest_alone": 3.0336,
+  "ratio": 0.9580366561181435,
+  "beat_depth": 0.22760269491631535
+ },
+ {
+  "label": "X + spindle, X at resonance",
+  "together": 1.4259,
+  "loudest_alone": 1.2076,
+  "ratio": 1.1807717787346803,
+  "beat_depth": 0.10744150683155286
+ },
+ {
+  "label": "all three near unison: 2, 3, 5 Hz beats",
+  "together": 2.8585,
+  "loudest_alone": 3.0336,
+  "ratio": 0.9422797995780591,
+  "beat_depth": 0.22547802447901963
+ },
+ {
+  "label": "all three at their resonance",
+  "together": 3.3559,
+  "loudest_alone": 2.9675,
+  "ratio": 1.1308845829823084,
+  "beat_depth": 0.23009595175580208
+ },
+ {
+  "label": "all three in tune: A4 unison",
+  "together": 1.3057,
+  "loudest_alone": 1.4431,
+  "ratio": 0.9047883029589079,
+  "beat_depth": 0.40560911812197
+ },
+ {
+  "label": "C major chord: X C4, Z E4, C G4",
+  "together": 1.3251,
+  "loudest_alone": 0.8214,
+  "ratio": 1.6132213294375455,
+  "beat_depth": 0.35954707360466537
+ },
+ {
+  "label": "A minor chord: X A3, Z C4, C E4",
+  "together": 2.0661,
+  "loudest_alone": 2.0268,
+  "ratio": 1.0193901716992302,
+  "beat_depth": 0.26793254623750123
+ },
+ {
+  "label": "low rumble",
+  "together": 2.0108,
+  "loudest_alone": 1.8735,
+  "ratio": 1.0732852949025888,
+  "beat_depth": 0.2677764049765086
+ },
+ {
+  "label": "spread",
+  "together": 2.7664,
+  "loudest_alone": 2.3301,
+  "ratio": 1.1872451826101884,
+  "beat_depth": 0.32103409796496485
+ },
+ {
+  "label": "mid",
+  "together": 1.0402,
+  "loudest_alone": 1.1576,
+  "ratio": 0.8985832757429164,
+  "beat_depth": 0.4422582773898237
+ },
+ {
+  "label": "X+Z fast, spindle 2 octaves up",
+  "together": 0.9919,
+  "loudest_alone": 1.0354,
+  "ratio": 0.9579872513038439,
+  "beat_depth": 0.5033466756067606
+ },
+ {
+  "label": "everything fast",
+  "together": 0.7877,
+  "loudest_alone": 0.6753,
+  "ratio": 1.1664445431660002,
+  "beat_depth": 0.5097668006640054
+ }
+]

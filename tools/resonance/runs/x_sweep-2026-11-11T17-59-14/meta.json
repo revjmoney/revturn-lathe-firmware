@@ -1,0 +1,14 @@
+{
+ "file": "x_sweep.nc",
+ "phone": "phone (address removed)",
+ "title": "Acceleration (without g)",
+ "buffers": [
+  "acc_time",
+  "accX",
+  "accY",
+  "accZ",
+  "acc"
+ ],
+ "tPhoneStartMs": 190,
+ "statusCount": 619
+}

@@ -1,6 +1,6 @@
 # REVTURN by JMSCNC: a touch-screen CNC lathe controller on an ESP32
 
-A mini CNC lathe running **grblHAL** on a $5 ESP32, with a **ProtoTRAK / Fanuc style control screen built into
+A mini CNC lathe running **grblHAL** on an ESP32, with a **ProtoTRAK / Fanuc style control screen built into
 the firmware**. Open `http://revturn.local/` (or the lathe's IP) on a phone, a tablet by the machine, or a PC: it boots
 straight to REVTURN. The stock grblHAL WebUI is still there for settings, behind the **WEBUI** button (`/webui/`).
 No app, no sender, no cloud.
@@ -91,9 +91,9 @@ serial terminal. Axis values are in mm and degrees (grblHAL's native units); the
 |---|---|---|
 | `$32` | 2 | Lathe mode (X in diameter, G7/G8) |
 | `$100` | 800 | X steps/mm: **measured** (X-2 on diameter moved 0.5 in real at 400, so doubled); 8 mm T8 screw |
-| `$102` | 966 | Z steps/mm: **measured** (0.99 in per commanded inch on calipers); belt to an 8 mm T8 screw |
+| `$102` | 1932 | Z steps/mm at **32x** microstepping (Rev 2026-11-11, to cut the Z buzz at cutting feeds; 966 at 16x was **measured**: 0.99 in per commanded inch on calipers); belt to an 8 mm T8 screw |
 | `$103` | 13.333 | C steps/deg: C driver at **8x** microstepping (26.667 at 16x, measured: one commanded turn = exactly one chuck turn); 20T to 120T belt |
-| `$110` / `$112` | 635 / 635 | X / Z max rate, mm/min: **25 in/min** on both for now (Rev, 2026-11-11). Caps feeds, rapids and jogs |
+| `$110` / `$112` | 635 / 558.8 | X / Z max rate, mm/min: X **25 in/min**, Z **22 in/min** (Rev, 2026-11-11: the phone resonance sweep showed Z shaking violently at 25 ipm, about 1900 motor rpm, likely near stalling; 14 to 22 ipm is Z's smooth band). Caps feeds, rapids and jogs |
 | `$113` | 99000 | C max rate, deg/min = **275 rpm** chuck (rpm x 360) |
 | `$120` / `$122` / `$123` | 50 / 12 / 240 | X / Z accel (mm/s²), C accel (deg/s², about 2.5 s to 100 rpm) |
 | `$30` | 275 | Max spindle rpm (the screen's slider tops out here; the stepper spindle is also capped by `$113`) |

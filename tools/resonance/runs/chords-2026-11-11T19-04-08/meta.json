@@ -1,0 +1,23 @@
+{
+ "file": "chords.nc",
+ "phone": "phone (address removed)",
+ "title": "Acceleration (without g)",
+ "buffers": [
+  "acc_time",
+  "accX",
+  "accY",
+  "accZ",
+  "acc"
+ ],
+ "tPhoneStartMs": 148,
+ "startedAt": "2026-11-11T19:01:48.073Z",
+ "statusCount": 1289,
+ "endState": "Idle",
+ "endMpos": [
+  69.245,
+  0,
+  -6.35,
+  0
+ ],
+ "settingsCount": 126
+}
