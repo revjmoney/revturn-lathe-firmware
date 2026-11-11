@@ -35,7 +35,8 @@ coupler instead of a belt. See [Option: direct-drive X](#option-direct-drive-x-r
 | `rail_clamp_cap_x4` | 4 | Bolt-down caps that clamp the rails (two M5 each) | 34 x 25 x 15 | see set total |
 | `cross_slide_saddle_r9` | 1 | Saddle on the Z rails: brass nut mount, X rail lands, both X towers | 200 wide | 8 h 00 |
 | `cross_slide_top_plate_r9` | 1 | Rides the X rails, tool platform grid on top | 45 x 61 x 24 | 2 h 11 |
-| `x_motor_inline_rail_mount_r9` | 1 | **On the lathe.** NEMA 17 in line with the X screw, 1:1 through an Ender 3 Pro Z coupler (5 to 8 mm). Two split clamp collars on the X rail ends (M3 pinch screws) plus the tower's four M4 side holes | 54 x 70 x 57 | |
+| `x_motor_inline_rail_mount_no_side_tie_r9` | 1 | **On the lathe.** NEMA 17 in line with the X screw, 1:1 through an Ender 3 Pro Z coupler (5 to 8 mm). Held by two split clamp collars on the X rail ends (M3 pinch screws) and a rail extension web; nothing bolts to the tower | 54 x 70 x 38 | |
+| `x_motor_inline_rail_mount_r9` | 1 | *Option:* the same mount plus a side flange that bolts to the tower's four M4 side holes for extra hold | 54 x 70 x 57 | |
 | `x_belt_motor_bracket_r9` | 1 | *Option:* the original R9 belt drive, NEMA 17 on the tower's back face, same four M4 holes | | 1 h 25 |
 | `pulley_30t_motor_bore5_r9` | 1 | *Option, belt drive only:* GT2 30T, 5 mm bore, short hub (X motor) | 23 dia | 21 min |
 | `pulley_30t_screw_bore8` | 1+ | GT2 30T, 8 mm bore (leadscrew) | 23 dia | |
@@ -79,7 +80,9 @@ uses its own Z belt ratio. Use the measured steps per mm from the
 
 ## About the inline X mount
 
-Drawing: [`drawings/x_motor_inline_rail_mount_r9.png`](drawings/x_motor_inline_rail_mount_r9.png). Fit notes, in inches:
+Drawings: [`drawings/x_motor_inline_rail_mount_both_options.png`](drawings/x_motor_inline_rail_mount_both_options.png) (both versions) and
+[`drawings/x_motor_inline_rail_mount_r9.png`](drawings/x_motor_inline_rail_mount_r9.png). The flange was not needed on this lathe (the rail clamps
+hold it), so the version without it is the one in use. Fit notes, in inches:
 - Rails 0.393 in on 1.496 in centres; keep both about 1.181 in beyond the tower (shorten the long one to match).
 - Bores 0.397 in nominal; collar length 1.093 in; motor plate 1.250 in beyond the tower.
 - Coupler envelope 0.787 in diameter, about 0.984 in long.
