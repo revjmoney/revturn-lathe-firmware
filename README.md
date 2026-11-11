@@ -131,15 +131,23 @@ go to 4x (6.667) or a 48 V driver like a DM542 for more.
 The screen itself (plain JS, 283 tests) lives in a separate repo; its built, gzipped page is
 `main/embedded/lathe.html.gz`.
 
-## Credits and licenses
+## License
+**REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).** Everything JMSCNC made here
+(firmware changes, screen, tools, test data, website, printed parts and their FreeCAD sources) is licensed
+**GPL-3.0-or-later** ([`LICENSE`](LICENSE)) with one added term under GPLv3 section 7(b): **keep the attribution**
+"REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com)" in every copy, modified version,
+print or product listing, and mark your changes. Details and the list of other people's code in [`NOTICE.md`](NOTICE.md).
+
+## Credits
 - **Firmware:** [grblHAL](https://github.com/grblHAL) by Terje Io and contributors, GPL v3 (see `README-grblHAL.md`
   and `COPYING`). The REVTURN changes are Copyright 2026 JMSCNC / Rev. J. Money, under the same license.
 - **Settings page:** [ESP3D-WebUI](https://github.com/luc-github/ESP3D-WEBUI) 3.0 by Luc Lebosse, GPL v3 (only its page
   title is changed, to "REVTURN Settings (grblHAL)"). Shipped in `webui-files/`.
-- **REVTURN screen and branding:** Copyright 2026 JMSCNC / Rev. J. Money. The monkey mascot is JMSCNC's.
-- **Printed parts** (`hardware/`): STL, STEP and drawings by Rev. J. Money, licensed
-  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Remix them, print them, sell parts if you like;
-  credit the original and share your changes under the same license. See [`hardware/LICENSE.md`](hardware/LICENSE.md).
+- **REVTURN screen, tools, website and branding:** Copyright 2026 JMSCNC / Rev. J. Money, GPL-3.0-or-later with
+  attribution. The monkey mascot is JMSCNC's.
+- **Printed parts** (`hardware/`): STL, STEP, drawings and FreeCAD sources by Rev. J. Money, GPL-3.0-or-later with
+  attribution (they were CC BY-SA 4.0 until 2026-11-11). Print them, remix them, sell parts if you like: keep the
+  credit and share your editable design files under the same license. See [`hardware/LICENSE.md`](hardware/LICENSE.md).
 
 ## Support
 If REVTURN helped you or you just like watching junk turn into a lathe, you can

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+// Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
 // REVTURN resonance recorder: runs one sweep program on the lathe while a phone running phyphox (Remote access on)
 // records, all over WiFi. Logs the lathe's own live feed / rpm with PC timestamps so each speed can be cut out of
 // the phone data afterwards. Copyright 2026 JMSCNC / Rev. J. Money (jmscnc.com).
@@ -20,13 +23,13 @@ const here = new URL('.', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 if (!phone) { console.error('need --phone http://<phone ip>:8080 (shown in phyphox after Remote access is on)'); process.exit(2); }
 
-const pget = async (path) => {
-  const r = await fetch(`${phone}${path}`, { signal: AbortSignal.timeout(8000) });
+const pget = async (path, ms = 8000) => {
+  const r = await fetch(`${phone}${path}`, { signal: AbortSignal.timeout(ms) });
   if (!r.ok) throw new Error(`phone ${path}: HTTP ${r.status}`);
   return r.json();
 };
 const buffersOf = (cfg) => (cfg.buffers ?? []).map((b) => b.name);
-const grab = async (names) => (await pget(`/get?${names.map((n) => `${encodeURIComponent(n)}=full`).join('&')}`)).buffer;
+const grab = async (names, ms) => (await pget(`/get?${names.map((n) => `${encodeURIComponent(n)}=full`).join('&')}`, ms)).buffer;
 
 const cfg = await pget('/config');
 const names = buffersOf(cfg);
@@ -72,6 +75,10 @@ t0 = Date.now(); log.length = 0;
 const startWall = t0;
 await pget('/control?cmd=start');
 const tPhoneStart = Date.now() - t0;
+// --poll fft,recording: snapshot buffers that phyphox only keeps for the latest frame (Audio Spectrum), every --every ms
+const pollNames = (arg('--poll') ?? '').split(',').filter(Boolean), polled = [];
+let polling = pollNames.length > 0;
+const pollLoop = (async () => { while (polling) { const ts = Date.now() - t0; try { const b = await grab(pollNames); polled.push({ t_ms: ts, t_done_ms: Date.now() - t0, ...Object.fromEntries(pollNames.map((k) => [k, b[k]?.buffer ?? []])) }); } catch { /* skip a missed frame */ } await sleep(Number(arg('--every', '120'))); } })();
 await sleep(1500);                                  // a quiet second of baseline before anything moves
 link.sendLine(runLine(file));
 // A file run reports SD:<pct>,<file> until it ends; during a G4 pause the state reads Idle, so the end is
@@ -87,19 +94,23 @@ for (;;) {
   if (Date.now() - t0 > 15 * 60000) { console.error('took too long: stopping'); break; }
 }
 await sleep(1500);
+polling = false; await pollLoop;
 await pget('/control?cmd=stop');
 clearInterval(poll);
-const data = await grab(names);
 link.close();
 
+// save the lathe side FIRST, then pull the phone: a minute of 48 kHz audio is about 37 MB (15 s or more on WiFi)
 const dir = join(here, 'runs', `${file.replace('.nc', '')}-${new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19)}`);
 mkdirSync(dir, { recursive: true });
-writeFileSync(join(dir, 'phone.json'), JSON.stringify(data));
 writeFileSync(join(dir, 'lathe.csv'), 't_ms,state,feed_mm_min,rpm,sd_pct,line_n,mpos_xyzc\n' + log.map((r) => r.join(',')).join('\n') + '\n');
+writeFileSync(join(dir, 'meta.partial.json'), JSON.stringify({ file, startedAt: new Date(startWall).toISOString(), tPhoneStartMs: tPhoneStart }));
+const data = await grab(names, 300000);
+writeFileSync(join(dir, 'phone.json'), JSON.stringify(data));
+if (polled.length) writeFileSync(join(dir, 'phone-poll.json'), JSON.stringify(polled));
 writeFileSync(join(dir, 'settings.txt'), settingsSnap.join('\n') + '\n');
 writeFileSync(join(dir, 'machine-info.txt'), infoSnap.join('\n') + '\n');
 writeFileSync(join(dir, file), text);
 try { writeFileSync(join(dir, file.replace('.nc', '.schedule.json')), readFileSync(join(here, file.replace('.nc', '.schedule.json')))); } catch { /* no schedule for this one */ }
-writeFileSync(join(dir, 'meta.json'), JSON.stringify({ file, phone, title: cfg.title, buffers: names, tPhoneStartMs: tPhoneStart, startedAt: new Date(startWall).toISOString(), statusCount: log.length, endState: last?.state, endMpos: last?.mpos, settingsCount: settingsSnap.length }, null, 1));
+writeFileSync(join(dir, 'meta.json'), JSON.stringify({ file, phone: '(not saved)', title: cfg.title, buffers: names, tPhoneStartMs: tPhoneStart, startedAt: new Date(startWall).toISOString(), statusCount: log.length, endState: last?.state, endMpos: last?.mpos, settingsCount: settingsSnap.length, polledFrames: polled.length }, null, 1));
 console.log(`saved ${dir} (${log.length} lathe status lines, ${names.map((n) => `${n}:${data[n]?.buffer?.length ?? 0}`).join(' ')})`);
 process.exit(0);

@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+# Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
 """One-piece R9 inline mount: solid lower half seats + original side flange.
 Functional locations use original R9 coordinates. Configuration includes inch
 dimensions; all CAD geometry is computed internally in mm.

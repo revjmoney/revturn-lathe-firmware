@@ -204,6 +204,29 @@ Shake = vibration rms in m/s^2 (still phone = 0.026). Pitch = the motor full-ste
 | X+Z fast, spindle 2 octaves up | 0.99 | 1.04 | 0.96 | 0.50 |
 | everything fast | 0.79 | 0.68 | 1.17 | 0.51 |
 
+## REVTURN plays Ode to Joy (2026-11-11)
+
+X plays the melody (G3..G4 = 9.3..18.5 ipm, a reversal on every note for the "pluck", lengths corrected for the
+accel ramps), 92 bpm, 62 notes. Each take after the first opens with a 3 s **dolphin** squeal (X gliding
+24..39.5 ipm with click trains), which is also the sync mark for video. Recorded with full 48 kHz sound and the
+accelerometer (REVTURN Mic 4):
+
+| Take | Bass | Melody notes heard in tune | Median shake | Peak shake |
+|---|---|---|---|---|
+| 1 | spindle drone C3 (131 Hz) | 47 / 62 | 0.72 m/s2 | 1.57 |
+| 2 | spindle drone C2 / G2 | 38 / 62 | 0.68 | 1.63 |
+| 3 | **Z bassline** G2 / C3 / D3 (3.8..5.7 ipm) | 16 / 62 | **1.45** | **3.71** |
+
+- The melody comes through; the notes the pitch tracker misses are mostly E4 (330 Hz) and D4 (294 Hz).
+- The Z bass sits in Z's loud 4..10 ipm band and right around the frame's 127 Hz mode: it doubles the shake and
+  its rumble and harmonics cover the melody in the pitch tracker. It sounds like a band in the room.
+- In the first takes (stock Audio Spectrum, 23 Hz bins) the C3 drone looked like it swamped the melody; with
+  full audio it does not. That was the coarse peak tracker.
+
+Results: `runs/ode_to_joy_take1-*`, `runs/ode_to_joy-*`, `runs/ode_to_joy_zbass-*` (song_spectrogram.png,
+song_shake.png, song_pitch.png, song_notes.csv, lathe log, settings). Sound (WAV) and raw phone data (38 MB zip):
+https://github.com/revjmoney/revturn-lathe-firmware/releases/tag/song-2026-11-11
+
 ## Data
 
 **Full raw data set** (every phone reading and lathe log, 14 MB zip): https://github.com/revjmoney/revturn-lathe-firmware/releases/tag/resonance-2026-11-11

@@ -23,6 +23,10 @@ REVTURN by JMSCNC. Copyright 2026 JMSCNC / Rev. J. Money.
 | `record.mjs` | Runs one program on the lathe while the phone records; logs the lathe's status 10x a second with the running line number (`N`) and position; saves settings and machine info |
 | `analyze.py` | Simple per-speed report for the first sweeps |
 | `analyze_scale.py` | Full-sweep report per quarter tone / chord: shake, strongest frequency, which motor harmonic it is, speed reached, flags, note table, waterfall chart |
+| `gen-song.mjs` | **REVTURN plays Ode to Joy** (Beethoven, public domain): X plays the melody, spindle drone or **Z bassline**, plus a 3 s **dolphin** squeal intro. Makes `ode_to_joy_take1.nc` (TAKE1=1), `ode_to_joy.nc`, `ode_to_joy_zbass.nc` |
+| `phyphox/revturn-mic-4.phyphox` | Custom phyphox experiment: the WHOLE 48 kHz microphone recording plus the accelerometer, pulled over Remote access |
+| `song_graphs.py` | Song report: WAV, spectrogram with the programmed notes drawn on, heard pitch vs note, shake graph, notes in tune, and self-drawing MP4 overlays (`--video`) |
+| `find_dolphin.py` | Finds the dolphin intro in a camera clip's audio, to sync the overlays to video |
 
 A motor's pitch is its **full-step rate**: X 21.17 Hz per ipm, Z 25.56 Hz per ipm, C 10 Hz per rpm.
 
@@ -40,6 +44,21 @@ Rules learned the hard way:
   recorder for 88.7 s of the C run. Those 34 steps are filled in by timing (`timed=True` in the report).
 - No brackets inside a g-code comment: `(... (clash) ...)` ends the comment early and stopped the first chords
   run with error:1.
+
+## Playing a song
+
+```
+node gen-song.mjs .
+node record.mjs --phone http://<phone ip>:8080 --file ode_to_joy.nc
+python -I song_graphs.py runs/<run folder> --video
+```
+
+The phone runs **REVTURN Mic 4** (load `phyphox/revturn-mic-4.phyphox` in phyphox: serve the file over HTTP and
+scan a QR of its URL; give each new version a new file name because phyphox caches by URL; re-tick Remote access
+after opening it). phyphox's audio input replaces its buffer on every cycle, so the experiment copies each chunk
+into a growing buffer with an `append` step. A minute of 48 kHz audio is about 37 MB to download; `record.mjs`
+saves the lathe log first and allows 5 minutes for it. With stock "Audio Spectrum" instead, use
+`record.mjs --poll fft,df,recording` (coarser: only the live spectrum, 23 Hz resolution).
 
 ## Run folders (`runs/`)
 

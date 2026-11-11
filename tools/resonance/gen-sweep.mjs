@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+// Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
 // REVTURN resonance sweeps: three small programs that hold each speed for a few seconds, so a phone on the slide
 // (phyphox over WiFi) can measure how hard the lathe shakes at every feed and spindle rpm.
 // Copyright 2026 JMSCNC / Rev. J. Money (jmscnc.com).

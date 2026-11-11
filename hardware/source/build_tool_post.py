@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+# Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
 """REVTURN temporary 3D-printed tool post (Rev 2026-11-10).
 
 Run with FreeCAD's python:  "C:/Program Files/FreeCAD 1.1/bin/python.exe" build_tool_post.py

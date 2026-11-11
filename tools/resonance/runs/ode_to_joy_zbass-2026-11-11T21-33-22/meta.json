@@ -1,0 +1,28 @@
+{
+ "file": "ode_to_joy_zbass.nc",
+ "phone": "(not saved)",
+ "title": "REVTURN Mic 4 (sound + shake)",
+ "buffers": [
+  "rec",
+  "all",
+  "rate",
+  "accX",
+  "accY",
+  "accZ",
+  "acc_time",
+  "n",
+  "secs"
+ ],
+ "tPhoneStartMs": 187,
+ "startedAt": "2026-11-11T21:32:16.600Z",
+ "statusCount": 594,
+ "endState": "Idle",
+ "endMpos": [
+  72.113,
+  0,
+  -6.725,
+  0
+ ],
+ "settingsCount": 126,
+ "polledFrames": 0
+}

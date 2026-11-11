@@ -1,0 +1,28 @@
+{
+ "file": "ode_to_joy.nc",
+ "phone": "(not saved)",
+ "title": "REVTURN Mic 4 (sound + shake)",
+ "buffers": [
+  "rec",
+  "all",
+  "rate",
+  "accX",
+  "accY",
+  "accZ",
+  "acc_time",
+  "n",
+  "secs"
+ ],
+ "tPhoneStartMs": 198,
+ "startedAt": "2026-11-11T21:30:40.666Z",
+ "statusCount": 531,
+ "endState": "Idle",
+ "endMpos": [
+  72.113,
+  0,
+  -6.725,
+  0
+ ],
+ "settingsCount": 126,
+ "polledFrames": 0
+}

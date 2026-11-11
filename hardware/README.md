@@ -196,8 +196,9 @@ Checked 2026-11-11: `build_r9.py` and the no-side-tie mount build cleanly from t
 - Feet have plain slots with no counterbores, so bolt heads stand about 8 mm proud: keep the motor clear of them.
 
 ## License
-These printed parts (STL, STEP, drawings) are licensed [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/).
-See [`LICENSE.md`](LICENSE.md).
+REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com). These printed parts (STL, STEP,
+drawings, FreeCAD sources) are licensed **GPL-3.0-or-later with attribution** (GPLv3 section 7(b)): keep the credit
+and share your editable changes under the same license. See [`LICENSE.md`](LICENSE.md) and [`../NOTICE.md`](../NOTICE.md).
 
 ## Support
 These parts are free. If they saved you some design time, **[buy me a coffee](https://buymeacoffee.com/revjmoney)**.

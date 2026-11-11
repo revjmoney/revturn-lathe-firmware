@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+# Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
 """One-piece R9 inline mount: full-length single-split rail collars. side_tie (parameters.json) adds the original side
 flange on the tower face with its four M4 holes; without it the mount holds by the rail clamps and keeps the rail
 extension web along the +Y rail seat (Rev 2026-11-10).

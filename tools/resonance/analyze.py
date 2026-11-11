@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+# Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
 """REVTURN resonance analysis: how hard the slide shakes at each spindle rpm or feed, and at what frequency.
 Copyright 2026 JMSCNC / Rev. J. Money (jmscnc.com).
 

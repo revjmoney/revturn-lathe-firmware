@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+# Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
 """R9 direct-drive mount. Dimensions in mm, original R9 assembly coordinates.
 Edit parameters.json and rebuild with FreeCAD's bundled Python.
 Three printed pieces: main bracket + two identical caps.

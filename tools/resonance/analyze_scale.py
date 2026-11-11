@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+# Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
 """REVTURN full-sweep / stepper-music analysis. Copyright 2026 JMSCNC / Rev. J. Money (jmscnc.com).
 
 Usage: python -I analyze_scale.py runs/<scale_x|scale_z|scale_c|chords run folder>

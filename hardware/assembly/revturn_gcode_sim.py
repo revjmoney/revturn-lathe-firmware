@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+# Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
 """REVTURN g-code to motion timeline, for the FreeCAD animation macro (Rev 2026-11-10).
 
 Pure Python, no FreeCAD: turns a program into straight-line segments in machine terms

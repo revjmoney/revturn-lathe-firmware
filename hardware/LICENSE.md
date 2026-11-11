@@ -1,20 +1,19 @@
 # License for the REVTURN printed parts
 
-Copyright (c) 2026 Rev. J. Money
+**REVTURN by JMSCNC**
+Copyright (C) 2026 Rev. J. Money / JMSCNC (https://jmscnc.com)
 
-The files in this `hardware/` folder (STL models, STEP models and drawings) are licensed under the
-**Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)**.
+The files in this `hardware/` folder (STL models, STEP models, drawings, FreeCAD files and the scripts that
+build them) are licensed under the **GNU General Public License version 3, or (at your option) any later
+version** (GPL-3.0-or-later). The full text is in [`../LICENSE`](../LICENSE).
 
-You are free to:
-- **Share:** copy and redistribute the material in any medium or format, for any purpose, even commercially.
-- **Adapt:** remix, transform, and build upon the material for any purpose, even commercially.
+For hardware, the "source code" is the editable design: the FreeCAD files and build scripts in
+`hardware/freecad/` and `hardware/source/`. If you share or sell parts or a modified design, share your
+editable design files under the same license.
 
-Under these terms:
-- **Attribution:** give appropriate credit (REVTURN lathe by Rev. J. Money, with a link to this repository),
-  provide a link to the license, and indicate if changes were made.
-- **ShareAlike:** if you remix, transform, or build upon the material, you must distribute your contributions
-  under the same license as the original.
+**Attribution (GPLv3 section 7(b) additional term):** keep "REVTURN by JMSCNC, Copyright (C) 2026
+Rev. J. Money / JMSCNC (jmscnc.com)" with every copy, print listing and modified version, and mark your
+changes. See [`../NOTICE.md`](../NOTICE.md).
 
-Full legal code: https://creativecommons.org/licenses/by-sa/4.0/legalcode
-
-The firmware in the rest of this repository is not covered by this file; it is GPL v3 (see `COPYING`).
+(Until 2026-11-11 these parts were published under CC BY-SA 4.0. Copies people got under that license keep
+it; from now on the parts are GPL-3.0-or-later with attribution, like everything else in REVTURN.)

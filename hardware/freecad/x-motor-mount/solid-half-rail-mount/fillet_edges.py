@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+# Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
 """Apply outside fillets without adding material to functional clearances.
 Recovered 2026-11-10 from the Codex thread (Oct 11 13:01 version): convex_edges and acceptable, the two functions the
 inline / solid-half / split rail mount builds import."""

@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+// Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
 // REVTURN by JMSCNC website. Copyright 2026 JMSCNC / Rev. J. Money (jmscnc.com).
 // Screen gallery driven by soft keys (like the real control), a zoom window, and the section soft bar.
 const SHOTS = [
