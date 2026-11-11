@@ -1,0 +1,295 @@
+# REVTURN lathe: live g-code animation in FreeCAD, with stock (Rev 2026-11-10)
+#
+# Run: FreeCAD > Macro > Macros... > browse to this folder > REVTURN_animate.FCMacro > Execute.
+# It opens REVTURN_lathe_assembly.FCStd from this folder and shows a panel:
+#   Program: Open program (.nc / .gcode / screen .json), Play / Pause, Reset, Speed, a time slider to scrub.
+#   Stock:   diameter, stickout from the chuck face, total length (inches), Show stock, Auto from program, Apply.
+#            "Auto" reads a screen program's "stock" entry or a (STOCK DIA 1.5 LEN 3 STICKOUT 2) comment, else it
+#            estimates from the moves. It runs automatically each time a program is opened.
+# The red tool tip follows the program: X0 = tip on the spindle centreline, Z0 = the stock face, X+ toward the back,
+# Z- toward the chuck. The saddle moves for Z, the top slide for X, the chuck and stock turn for C and M3 / M4 S.
+# Closing the panel puts everything back and removes the stock.
+import json, math, os, sys
+import FreeCAD as App
+import FreeCADGui as Gui
+import Part
+from PySide import QtCore, QtGui
+
+HERE = os.path.dirname(os.path.abspath(__file__)) if '__file__' in globals() else r'F:\micro-lathe\printed-parts\assembly'
+if not os.path.exists(os.path.join(HERE, 'revturn_gcode_sim.py')):
+    HERE = r'F:\micro-lathe\printed-parts\assembly'
+if HERE not in sys.path:
+    sys.path.insert(0, HERE)
+import importlib, revturn_gcode_sim as sim
+importlib.reload(sim)
+
+ASM = os.path.join(HERE, 'REVTURN_lathe_assembly.FCStd')
+ANIM = json.load(open(os.path.join(HERE, 'animation.json')))
+IN = 25.4
+STOCK_NAME = 'REVTURN_stock'
+
+
+def style(doc):
+    """Show every part with its colour (command-line FreeCAD saves no display data)."""
+    for name, (col, kind) in ANIM.get('style', {}).items():
+        o = doc.getObject(name)
+        if not o or not o.ViewObject:
+            continue
+        v = o.ViewObject
+        v.Visibility = True
+        try:
+            v.ShapeColor = tuple(int(col[i:i + 2], 16) / 255.0 for i in (1, 3, 5))
+            v.Transparency = 55 if kind == 'stand-in' else 0
+        except Exception:
+            pass
+
+
+def get_doc():
+    for d in App.listDocuments().values():
+        if d.FileName and os.path.normcase(os.path.abspath(d.FileName)) == os.path.normcase(os.path.abspath(ASM)):
+            App.setActiveDocument(d.Name); style(d); return d
+    d = App.openDocument(ASM)
+    App.setActiveDocument(d.Name); style(d)
+    Gui.activeDocument().activeView().viewIsometric()
+    Gui.SendMsgToActiveView('ViewFit')
+    return d
+
+
+class Animator:
+    def __init__(self, doc):
+        self.doc = doc
+        self.objs = {n: doc.getObject(n) for n in set(ANIM['z_group'] + ANIM['x_group'] + ANIM['c_group'])}
+        self.base = {n: App.Placement(o.Placement) for n, o in self.objs.items() if o}
+        self.zlo, self.zhi = ANIM['z_travel_mm']
+        self.xlo, self.xhi = ANIM['x_travel_mm']
+        self.tip = ANIM['tool_tip_mm']
+        self.chuck_face = ANIM['chuck_face_y_mm']
+        self.axis_pt = App.Vector(*ANIM['spindle_axis_point_mm'])
+        self.segs, self.info = [], {'seconds': 0.0, 'moves': 0, 'x_range': [0, 0], 'z_range': [0, 0], 'skipped_arcs': 0}
+        self.t, self.spin, self.clipped = 0.0, 0.0, False
+        self.stock = {'dia': 1.0, 'stickout': 1.5, 'length': 2.25, 'source': 'default'}
+        self.show_stock = True
+        self.stock_obj = None
+
+    # ----- stock
+    def set_stock(self, dia, stickout, length, show=True):
+        self.stock.update({'dia': dia, 'stickout': stickout, 'length': max(length, stickout)})
+        self.show_stock = show
+        if self.stock_obj is None or self.doc.getObject(STOCK_NAME) is None:
+            self.stock_obj = self.doc.addObject('Part::Feature', STOCK_NAME)
+            self.stock_obj.Label = 'stock (animation)'
+        r = dia * IN / 2.0
+        y0 = self.chuck_face - (self.stock['length'] - stickout) * IN       # the gripped part sits inside the chuck
+        self.stock_shape = Part.makeCylinder(r, self.stock['length'] * IN, App.Vector(0, y0, self.axis_pt.z), App.Vector(0, 1, 0))
+        self.stock_obj.Shape = self.stock_shape
+        self.stock_base = App.Placement(self.stock_obj.Placement)
+        v = self.stock_obj.ViewObject
+        if v:
+            v.Visibility = show
+            v.ShapeColor = (0.80, 0.82, 0.85)
+            v.Transparency = 25
+        self.apply()
+
+    def remove_stock(self):
+        if self.doc.getObject(STOCK_NAME):
+            self.doc.removeObject(STOCK_NAME)
+        self.stock_obj = None
+
+    def face_y(self):
+        return self.chuck_face + self.stock['stickout'] * IN
+
+    # ----- program
+    def load(self, path):
+        self.segs, self.info = sim.build(sim.program_text(path))
+        self.t, self.spin = 0.0, 0.0
+        st = sim.detect_stock(path, self.segs)
+        self.stock['source'] = st['source']
+        self.set_stock(st['dia'], st['stickout'], st['length'], self.show_stock)
+        return st
+
+    def travel_report(self):
+        """Program extremes against the model's travel, as text (empty when it all fits)."""
+        if not self.segs:
+            return ''
+        (x0, x1), (z0, z1) = self.info['x_range'], self.info['z_range']
+        msgs = []
+        dx = [x - self.tip[0] for x in (x0, x1)]
+        dy = [self.face_y() + z - self.tip[1] for z in (z0, z1)]
+        if dx[0] < self.xlo - 1e-6 or dx[1] > self.xhi + 1e-6:
+            msgs.append('X needs %.2f to %.2f in (dia), the slide reaches %.2f to %.2f.' % (
+                2 * x0 / IN, 2 * x1 / IN, 2 * (self.xlo + self.tip[0]) / IN, 2 * (self.xhi + self.tip[0]) / IN))
+        if dy[0] < self.zlo - 1e-6 or dy[1] > self.zhi + 1e-6:
+            msgs.append('Z needs %.2f to %.2f in from the stock face; with %.3f in stickout the saddle reaches %.2f to %.2f.' % (
+                z0 / IN, z1 / IN, self.stock['stickout'], (self.zlo + self.tip[1] - self.face_y()) / IN, (self.zhi + self.tip[1] - self.face_y()) / IN))
+        return ' '.join(msgs)
+
+    def apply(self):
+        (xr, z, c), rpm, idx = sim.state_at(self.segs, self.t)
+        dx = xr - self.tip[0]                         # tip on the centreline at X0, X+ toward the back
+        dy = self.face_y() + z - self.tip[1]          # tip on the stock face at Z0
+        self.clipped = not (self.zlo - 1e-6 <= dy <= self.zhi + 1e-6 and self.xlo - 1e-6 <= dx <= self.xhi + 1e-6)
+        dy = min(self.zhi, max(self.zlo, dy)); dx = min(self.xhi, max(self.xlo, dx))
+        for n in ANIM['z_group']:
+            o = self.objs.get(n)
+            if o:
+                o.Placement = App.Placement(self.base[n].Base + App.Vector(dx if n in ANIM['x_group'] else 0.0, dy, 0.0), self.base[n].Rotation)
+        turn = App.Placement(App.Vector(), App.Rotation(App.Vector(0, 1, 0), -(c + self.spin)), self.axis_pt)
+        for n in ANIM['c_group']:
+            o = self.objs.get(n)
+            if o:
+                o.Placement = turn.multiply(self.base[n])
+        if self.stock_obj is not None and self.doc.getObject(STOCK_NAME):
+            self.stock_obj.Placement = turn.multiply(self.stock_base)
+        return (xr, z, c), rpm, idx
+
+    def restore(self):
+        for n, o in self.objs.items():
+            if o:
+                o.Placement = self.base[n]
+        self.remove_stock()
+
+
+class Panel(QtGui.QWidget):
+    SPEEDS = [0.25, 0.5, 1, 2, 5, 10, 30]
+
+    def __init__(self, anim):
+        super().__init__(None, QtCore.Qt.Tool | QtCore.Qt.WindowStaysOnTopHint)
+        self.a = anim
+        self.setWindowTitle('REVTURN animate')
+        self.resize(560, 330)
+        lay = QtGui.QVBoxLayout(self)
+
+        prog = QtGui.QGroupBox('Program'); pl = QtGui.QVBoxLayout(prog)
+        row = QtGui.QHBoxLayout()
+        self.openb = QtGui.QPushButton('Open program...'); self.playb = QtGui.QPushButton('Play'); self.resetb = QtGui.QPushButton('Reset')
+        self.speed = QtGui.QComboBox()
+        for s in self.SPEEDS: self.speed.addItem('%gx' % s)
+        self.speed.setCurrentIndex(self.SPEEDS.index(5))
+        for w in (self.openb, self.playb, self.resetb, QtGui.QLabel('Speed'), self.speed): row.addWidget(w)
+        pl.addLayout(row)
+        self.slider = QtGui.QSlider(QtCore.Qt.Horizontal); self.slider.setRange(0, 1000); pl.addWidget(self.slider)
+        self.file = QtGui.QLabel('No program loaded'); pl.addWidget(self.file)
+        lay.addWidget(prog)
+
+        stock = QtGui.QGroupBox('Stock (inches)'); sl = QtGui.QHBoxLayout(stock)
+        def spin(v, lo, hi):
+            b = QtGui.QDoubleSpinBox(); b.setDecimals(3); b.setRange(lo, hi); b.setSingleStep(0.0625); b.setValue(v); return b
+        self.dia, self.stick, self.length = spin(1.0, 0.0625, 8.0), spin(1.5, 0.0, 12.0), spin(2.25, 0.125, 14.0)
+        self.showb = QtGui.QCheckBox('Show'); self.showb.setChecked(True)
+        self.autob = QtGui.QPushButton('Auto from program'); self.applyb = QtGui.QPushButton('Apply')
+        for w in (QtGui.QLabel('Dia'), self.dia, QtGui.QLabel('Stickout'), self.stick, QtGui.QLabel('Length'), self.length,
+                  self.showb, self.autob, self.applyb):
+            sl.addWidget(w)
+        lay.addWidget(stock)
+        self.stocksrc = QtGui.QLabel(''); self.stocksrc.setStyleSheet('color: #555;'); lay.addWidget(self.stocksrc)
+
+        self.dro = QtGui.QLabel(''); self.dro.setStyleSheet('font-family: Consolas, monospace; font-size: 13px;'); lay.addWidget(self.dro)
+        self.line = QtGui.QLabel(''); self.line.setStyleSheet('font-family: Consolas, monospace; color: #555;'); lay.addWidget(self.line)
+        self.warn = QtGui.QLabel(''); self.warn.setStyleSheet('color: #b00;'); self.warn.setWordWrap(True); lay.addWidget(self.warn)
+
+        self.timer = QtCore.QTimer(self); self.timer.setInterval(33); self.timer.timeout.connect(self.tick)
+        self.openb.clicked.connect(self.open_program); self.playb.clicked.connect(self.toggle)
+        self.resetb.clicked.connect(self.reset); self.slider.sliderMoved.connect(self.scrub)
+        self.applyb.clicked.connect(self.apply_stock); self.showb.toggled.connect(lambda _: self.apply_stock())
+        self.autob.clicked.connect(self.auto_stock)
+        self.wall, self.path = None, None
+        default = r'F:\micro-lathe\programs\smoke_test_4.json'
+        if os.path.exists(default):
+            self.load(default)
+        else:
+            self.apply_stock()
+
+    # ----- stock
+    def fill_stock(self, st):
+        for box, k in ((self.dia, 'dia'), (self.stick, 'stickout'), (self.length, 'length')):
+            box.blockSignals(True); box.setValue(st[k]); box.blockSignals(False)
+        self.stocksrc.setText('Stock %.3f dia x %.3f long, %.3f stickout: %s' % (st['dia'], st['length'], st['stickout'], st.get('source', 'typed in')))
+
+    def apply_stock(self):
+        self.a.set_stock(self.dia.value(), self.stick.value(), self.length.value(), self.showb.isChecked())
+        self.a.stock['source'] = 'typed in'
+        self.stocksrc.setText('Stock %.3f dia x %.3f long, %.3f stickout: typed in' % (self.dia.value(), max(self.length.value(), self.stick.value()), self.stick.value()))
+        self.update_warn(); self.update_labels()
+
+    def auto_stock(self):
+        if not self.path: return
+        st = sim.detect_stock(self.path, self.a.segs)
+        self.a.set_stock(st['dia'], st['stickout'], st['length'], self.showb.isChecked())
+        self.a.stock['source'] = st['source']
+        self.fill_stock(st); self.update_warn(); self.update_labels()
+
+    # ----- program
+    def load(self, path):
+        self.path = path
+        st = self.a.load(path)
+        self.fill_stock(st)
+        info = self.a.info
+        self.file.setText('%s: %d moves, about %d:%02d (no acceleration)' % (os.path.basename(path), info['moves'], info['seconds'] // 60, info['seconds'] % 60))
+        self.update_warn(); self.update_labels()
+
+    def update_warn(self):
+        w = self.a.travel_report()
+        if self.a.info.get('skipped_arcs'):
+            w += ' %d arc moves are drawn as straight lines.' % self.a.info['skipped_arcs']
+        self.warn.setText(w.strip())
+
+    def open_program(self):
+        path, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open a program', r'F:\micro-lathe\programs', 'Programs (*.nc *.gcode *.ngc *.tap *.txt *.json)')
+        if path:
+            self.stop(); self.load(path)
+
+    def toggle(self):
+        if self.timer.isActive():
+            self.stop()
+        else:
+            if self.a.t >= self.a.info.get('seconds', 0): self.a.t, self.a.spin = 0.0, 0.0
+            self.wall = None; self.timer.start(); self.playb.setText('Pause')
+
+    def stop(self):
+        self.timer.stop(); self.playb.setText('Play')
+
+    def reset(self):
+        self.stop(); self.a.t, self.a.spin = 0.0, 0.0; self.update_labels()
+
+    def scrub(self, v):
+        self.a.t = self.a.info.get('seconds', 0.0) * v / 1000.0
+        self.update_labels(move_slider=False)
+
+    def tick(self):
+        import time
+        now = time.perf_counter()
+        dt = 0.033 if self.wall is None else min(0.2, now - self.wall)
+        self.wall = now
+        dts = dt * self.SPEEDS[self.speed.currentIndex()]
+        total = self.a.info.get('seconds', 0.0)
+        _, rpm, _ = sim.state_at(self.a.segs, self.a.t)
+        self.a.spin = (self.a.spin + rpm * 360.0 / 60.0 * dts) % 360.0
+        self.a.t = min(total, self.a.t + dts)
+        self.update_labels()
+        if self.a.t >= total: self.stop()
+
+    def update_labels(self, move_slider=True):
+        (xr, z, c), rpm, idx = self.a.apply()
+        Gui.updateGui()
+        total = self.a.info.get('seconds', 0.0) or 1.0
+        if move_slider:
+            self.slider.blockSignals(True); self.slider.setValue(int(1000 * self.a.t / total)); self.slider.blockSignals(False)
+        spin = 'S%d %s' % (abs(rpm), 'CW' if rpm > 0 else 'CCW') if rpm else 'spindle off'
+        self.dro.setText('X %8.4f dia   Z %8.4f   C %7.2f deg   %s   t %d:%04.1f%s' % (
+            2 * xr / IN, z / IN, c % 360.0, spin, self.a.t // 60, self.a.t % 60, '   PAST TRAVEL' if self.a.clipped else ''))
+        if 0 <= idx < len(self.a.segs):
+            s = self.a.segs[idx]
+            self.line.setText('line %d: %s' % (s['line'], s['src'][:72]))
+
+    def closeEvent(self, e):
+        self.stop(); self.a.restore(); Gui.updateGui(); e.accept()
+
+
+_doc = get_doc()
+_anim = Animator(_doc)
+try:
+    REVTURN_PANEL.close()
+except Exception:
+    pass
+REVTURN_PANEL = Panel(_anim)
+REVTURN_PANEL.show()

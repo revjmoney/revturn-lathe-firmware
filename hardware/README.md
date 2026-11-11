@@ -18,10 +18,15 @@ Machining parts on a rotary axis instead? See **[RotatoCAM](https://rotatocam.co
 
 Two families are on the machine:
 - **The bed ends (R4):** a headstock-end frame and a tailstock-end frame that clamp two round rails and carry
-  the Z leadscrew, with the Z motor behind the tailstock frame on a short belt.
+  the Z leadscrew. On this lathe Z is driven by a big GT2 pulley on the outboard end of the screw, belted toward the
+  back of the lathe to a NEMA 17 on its own mount (the frame's belt motor mount is sawn off).
 - **The cross slide (R9, "long X"):** a saddle that rides the Z rails and carries its own X rails and leadscrew,
   a top plate that rides X, and an **inline X motor mount**: the NEMA 17 sits in line with the X screw, 1:1 through a
   coupler, on split clamps that grip the X rail ends. (The original R9 belt-drive bracket is still here as an option.)
+
+A **tool post** rides on the top plate: a swivel post (stops at 0, 45 and 90 degrees) with height-adjustable,
+swap-on holders. See [Tool post](#tool-post) below. The whole lathe is also a FreeCAD assembly you can animate with
+your own programs: see [Assembly and animation](#assembly-and-animation).
 
 There is also an **option for X: direct drive (R8)**, with the motor in line with the X screw on a 1:1 Oldham
 coupler instead of a belt. See [Option: direct-drive X](#option-direct-drive-x-r8-11-coupler) below.
@@ -41,6 +46,8 @@ coupler instead of a belt. See [Option: direct-drive X](#option-direct-drive-x-r
 | `pulley_30t_motor_bore5_r9` | 1 | *Option, belt drive only:* GT2 30T, 5 mm bore, short hub (X motor) | 23 dia | 21 min |
 | `pulley_30t_screw_bore8` | 1+ | GT2 30T, 8 mm bore (leadscrew) | 23 dia | |
 | `thrust_washer_x2` | 2 per screw | 11.4 mm washer between shaft collar and bearing inner race | 11 dia x 2 | 4 min (pair) |
+
+| `tool_post_*` | | The tool post: see [Tool post](#tool-post) | | |
 
 \*Measured in PrusaSlicer on the build printer's own profile with a 0.4 nozzle. The bed-end set (both frames, four
 caps, two pulleys, washers) is **10 h 35** together. A 0.6 nozzle roughly halves the big parts.
@@ -123,6 +130,39 @@ Drawing: [`drawings/drawings_r8_direct.png`](drawings/drawings_r8_direct.png).
 **Use the Oldham, not a rigid coupler.** The screw is held axially at the saddle end and the motor is bolted at the
 other, so a rigid coupler turns any printed misalignment into a cyclic side load on the motor bearings, which you
 will not notice until it binds. The plate's ribs sit at the sides so the coupler's hub screw stays reachable.
+
+## Tool post
+
+A temporary, all-printed tool post for the R9 top plate. It puts the tool on the spindle centreline (this lathe:
+spindle 5 in above the plywood base, 1.68 in above the top plate), adjusts +/- 4 mm in height, and swivels.
+
+| File | What it is |
+|---|---|
+| `tool_post_swivel_ring` | Bolts to the top plate (4 x M4 x 10 into heat-set inserts in the plate's M4 holes); pocket the post turns in |
+| `tool_post_base` | The post: 26 mm round foot with V notches every 45 deg, column, dovetail. **STL prints upside down** on the column top |
+| `tool_post_holder_turning` | 10.5 x 14 mm channel: 1/4 in HSS, or round drill-bit tools in the V shim |
+| `tool_post_holder_quarter_inch_solid` | Solid holder for 1/4 in square tools only: snug channel, tool sticks out 8 mm, clamp screws 14 and 27 mm behind the tip |
+| `tool_post_holder_boring` | 10.2 mm bore along the tool direction: 3/8 in / 10 mm boring bar or drill chuck shank |
+| `tool_post_v_shim_round_bits` | V strip for round bits 1/8 to 3/8 in (all reach centre within the height travel) |
+
+- **Swivel:** one M4 x 20 down the column into an insert in the plate's hole at the swivel centre clamps it; two
+  M4 x 12 side screws (tapped into the ring) drop into the notches for positive 0 / 45 / 90 stops toward the chuck.
+  Any angle in between holds by the clamp alone.
+- **Height:** an M4 x 25 jack screw in the holder's back tab pushes on the column top; 2 x M4 x 16 lock screws through
+  slots into inserts in the column.
+- **Tool clamps:** 2 x M4 x 16 (M4 x 20 in the solid holder), into inserts.
+- Holders print upright, as they sit, no supports. PETG or PLA, 6 walls, 40 % infill or more.
+
+Pictures: [`drawings/tool-post/`](drawings/tool-post/). Source: [`source/build_tool_post.py`](source/build_tool_post.py)
+(FreeCAD 1.1 python: builds every part and runs 132 fit checks: every height, every swivel angle, tool and bit fits).
+
+## Assembly and animation
+
+[`assembly/`](assembly/): the whole lathe as built, in FreeCAD 1.1 (`REVTURN_lathe_assembly.FCStd`, `.step` for any
+CAD): real printed parts, rails, screws, bearings, collars, the tool post, plus simple stand-ins for the headstock,
+chuck and motors. `REVTURN_animate.FCMacro` plays a g-code or lathe-screen program on it live in FreeCAD, with a
+stock panel (size from the program, or type it in). See [`assembly/README.md`](assembly/README.md).
+`source/build_lathe_assembly.py` is the build script (it reads the part STEPs from Rev's own folders).
 
 ## Printing notes (learned on the real parts)
 - **Frames:** PLA+. **Saddle and top plate:** plain PLA worked; same filament roll for a part and its fit test.

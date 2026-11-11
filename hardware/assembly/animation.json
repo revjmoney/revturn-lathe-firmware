@@ -1,0 +1,286 @@
+{
+  "z_group": [
+    "cross_slide_saddle_r9__printed_",
+    "cross_slide_top_plate_r9__printed_",
+    "x_motor_inline_rail_mount__no_side_tie__printed_",
+    "X_motor__StepperWorld_NEMA_17",
+    "X_coupler__Ender_3_Pro_Z_coupler_5_8_mm",
+    "X_motor_shaft",
+    "X_leadscrew__8_mm_T8_x_209_mm",
+    "X_rail____10_mm_x_198_8_mm",
+    "X_rail____10_mm_x_198_8_mm001",
+    "Z_nut__brass_T8_flange",
+    "tool_post_swivel_ring__printed_",
+    "tool_post_base__printed_",
+    "tool_post_holder__turning__printed_",
+    "tool_tip_marker__cutting_point_",
+    "X_shaft_collar__inside_far_tower__metal__8_mm__approx__",
+    "X_shaft_collar__outside_far_tower__metal__8_mm__approx__"
+  ],
+  "x_group": [
+    "cross_slide_top_plate_r9__printed_",
+    "tool_post_swivel_ring__printed_",
+    "tool_post_base__printed_",
+    "tool_post_holder__turning__printed_",
+    "tool_tip_marker__cutting_point_"
+  ],
+  "tool_tip_mm": [
+    52.150000000000006,
+    -130.8922,
+    107.95
+  ],
+  "chuck_face_y_mm": -200.3922,
+  "chuck_diameter_in": 3.0,
+  "real_z_travel_in": 5.0,
+  "bed_lengthened_mm": 50.79220000000001,
+  "c_group": [
+    "STAND_IN_3_in_3_jaw_chuck",
+    "STAND_IN_chuck_jaw_1",
+    "STAND_IN_chuck_jaw_2",
+    "STAND_IN_chuck_jaw_3"
+  ],
+  "spindle_axis_point_mm": [
+    0.0,
+    0.0,
+    107.95
+  ],
+  "z_travel_mm": [
+    -63.5,
+    63.500000000000014
+  ],
+  "x_travel_mm": [
+    -52.150000000000006,
+    52.150000000000006
+  ],
+  "notes": "Model Y+ = lathe Z+ (toward the tailstock). Model X+ = lathe X+ (motor side taken as the back).",
+  "style": {
+    "tailstock_frame_belt__printed__belt_motor_mount_sawn_off_as_": [
+      "#e09942",
+      "printed"
+    ],
+    "headstock_frame__printed_": [
+      "#e09942",
+      "printed"
+    ],
+    "rail_clamp_cap_tail__1__printed_": [
+      "#e09942",
+      "printed"
+    ],
+    "rail_clamp_cap_head__1__printed_": [
+      "#e09942",
+      "printed"
+    ],
+    "rail_clamp_cap_tail__1__printed_001": [
+      "#e09942",
+      "printed"
+    ],
+    "rail_clamp_cap_head__1__printed_001": [
+      "#e09942",
+      "printed"
+    ],
+    "Z_rail__1__0_470_in_x_11_5_in": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "Z_rail__1__0_470_in_x_11_5_in001": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "Z_leadscrew__8_mm_T8__length_to_suit_the_real_bed_": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "_688ZZ_bearing_1": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "_688ZZ_bearing_2": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "_688ZZ_bearing_3": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "_688ZZ_bearing_4": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "cross_slide_saddle_r9__printed_": [
+      "#e09942",
+      "printed"
+    ],
+    "cross_slide_top_plate_r9__printed_": [
+      "#e09942",
+      "printed"
+    ],
+    "x_motor_inline_rail_mount__no_side_tie__printed_": [
+      "#e09942",
+      "printed"
+    ],
+    "X_motor__StepperWorld_NEMA_17": [
+      "#2f3740",
+      "motor"
+    ],
+    "X_coupler__Ender_3_Pro_Z_coupler_5_8_mm": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "X_motor_shaft": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "X_leadscrew__8_mm_T8_x_209_mm": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "X_rail____10_mm_x_198_8_mm": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "X_rail____10_mm_x_198_8_mm001": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "Z_nut__brass_T8_flange": [
+      "#c9a227",
+      "hardware"
+    ],
+    "riser_under_tailstock_frame__0_75_in": [
+      "#c8a879",
+      "base"
+    ],
+    "riser_under_headstock_frame__0_75_in": [
+      "#c8a879",
+      "base"
+    ],
+    "plywood_base__0_75_in": [
+      "#d8c49a",
+      "base"
+    ],
+    "tool_post_swivel_ring__printed_": [
+      "#e09942",
+      "printed"
+    ],
+    "tool_post_base__printed_": [
+      "#e09942",
+      "printed"
+    ],
+    "tool_post_holder__turning__printed_": [
+      "#e09942",
+      "printed"
+    ],
+    "tool_tip_marker__cutting_point_": [
+      "#d02a2a",
+      "hardware"
+    ],
+    "STAND_IN_3_in_3_jaw_chuck": [
+      "#6f7b84",
+      "stand-in"
+    ],
+    "STAND_IN_chuck_jaw_1": [
+      "#6f7b84",
+      "stand-in"
+    ],
+    "STAND_IN_chuck_jaw_2": [
+      "#6f7b84",
+      "stand-in"
+    ],
+    "STAND_IN_chuck_jaw_3": [
+      "#6f7b84",
+      "stand-in"
+    ],
+    "STAND_IN_headstock__spindle_head": [
+      "#6c8aa8",
+      "stand-in"
+    ],
+    "STAND_IN_headstock__spindle_nose": [
+      "#6c8aa8",
+      "stand-in"
+    ],
+    "STAND_IN_headstock__leg__26__250": [
+      "#6c8aa8",
+      "stand-in"
+    ],
+    "STAND_IN_headstock__leg__26__311": [
+      "#6c8aa8",
+      "stand-in"
+    ],
+    "STAND_IN_headstock__leg__26__312": [
+      "#6c8aa8",
+      "stand-in"
+    ],
+    "STAND_IN_headstock__leg__26__313": [
+      "#6c8aa8",
+      "stand-in"
+    ],
+    "STAND_IN_headstock__flat_base_plate": [
+      "#6c8aa8",
+      "stand-in"
+    ],
+    "STAND_IN_spindle_pulley__GT2_120T": [
+      "#6f7b84",
+      "stand-in"
+    ],
+    "STAND_IN_spindle_motor_pulley__GT2_20T": [
+      "#6f7b84",
+      "stand-in"
+    ],
+    "spindle_motor__extra_long_NEMA_23__57_mm___112_mm_body_": [
+      "#2f3740",
+      "motor"
+    ],
+    "STAND_IN_NEMA_23_bracket": [
+      "#6c8aa8",
+      "stand-in"
+    ],
+    "STAND_IN_spindle_belt__20T_120T__6_1___top_run_": [
+      "#222222",
+      "hardware"
+    ],
+    "STAND_IN_spindle_belt__20T_120T__6_1___bottom_run_": [
+      "#222222",
+      "hardware"
+    ],
+    "Z_screw_pulley__big_GT2__100T_or_120T_": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "Z_motor_pulley__GT2_20T": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "Z_belt__top_run_": [
+      "#222222",
+      "hardware"
+    ],
+    "Z_belt__bottom_run_": [
+      "#222222",
+      "hardware"
+    ],
+    "Z_motor__standard_NEMA_17": [
+      "#2f3740",
+      "motor"
+    ],
+    "STAND_IN_Z_motor_mount__independent__on_the_plywood_": [
+      "#6c8aa8",
+      "stand-in"
+    ],
+    "Z_shaft_collar__inboard__metal__8_mm_": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "Z_shaft_collar__outboard__metal__8_mm_": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "X_shaft_collar__inside_far_tower__metal__8_mm__approx__": [
+      "#6f7b84",
+      "hardware"
+    ],
+    "X_shaft_collar__outside_far_tower__metal__8_mm__approx__": [
+      "#6f7b84",
+      "hardware"
+    ]
+  }
+}
