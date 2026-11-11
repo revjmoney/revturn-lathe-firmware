@@ -7,6 +7,10 @@ No app, no sender, no cloud.
 
 REVTURN is made by **[JMSCNC](https://jmscnc.com)** (Rev. J. Money). Copyright 2026 JMSCNC / Rev. J. Money.
 
+**🌐 [Website](https://revjmoney.github.io/revturn-lathe-firmware/) · [jmscnc.com/revturn](https://jmscnc.com/revturn/) · [Buy a preflashed board ($125)](https://jmscnc.com/product/revturn-lathe-controller/) · [☕ Buy me a coffee](https://buymeacoffee.com/revjmoney)**
+
+![REVTURN RUN screen](site/media/screen-run.png)
+
 From the maker of **[RotatoCAM](https://rotatocam.com)**: 4- and 3-axis CAM for DIY CNC. *Spin the stock. Read the signal.*
 
 [![Buy me a coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://buymeacoffee.com/revjmoney)
@@ -34,16 +38,16 @@ chuck (C) in synced moves, nonstop spindle speed and direction changes, and a C-
 >
 > Treat this as a starting point to adapt, not a drop-in.
 
-![DRO with zero bar and backplot](docs/screenshots/revturn-dro.png)
+![DRO](site/media/screen-dro.png)
 
 ## The screen
 
 | | |
 |---|---|
-| ![Thread cycle with preview](docs/screenshots/revturn-cycles-thread.png) **Conversational cycles**: face, turn (with chamfer / radius), bore, thread, groove, peck drill, **polygon (hex flats by X-C interpolation with the normal lathe tool)**, index. Fill in the form, GO previews the toolpath, GO again runs it. | ![RUN with live backplot](docs/screenshots/revturn-run-backplot.png) **Programs and live backplot**: chain cycles and raw g-code into a program, import Fusion lathe posts, watch the tool trace over the planned path with a live tool marker. |
-| ![Tool table and stroke limits](docs/screenshots/revturn-setup.png) **SET UP**: T1 to T8 tool table with touch-off (offsets from T1) and stored stroke limits (switched on and off with the LIMITS key, off by default), saved on the lathe so every screen shares them. | ![Jog](docs/screenshots/revturn-jog.png) **JOG**: step or continuous jog, respecting the stroke limits. |
+| ![Thread cycle with preview](site/media/screen-cycles-thread.png) **Conversational cycles**: face, turn (with chamfer / radius), bore, thread, groove, peck drill, **polygon (hex flats by X-C interpolation with the normal lathe tool)**, index. Fill in the form, GO previews the toolpath, GO again runs it. | ![RUN with live backplot](site/media/screen-run.png) **Programs and live backplot**: chain cycles and raw g-code into a program, import Fusion lathe posts, watch the tool trace over the planned path with a live tool marker. |
+| ![Tool table and stroke limits](site/media/screen-setup.png) **SET UP**: T1 to T8 tool table with touch-off (offsets from T1) and stored stroke limits (switched on and off with the LIMITS key, off by default), saved on the lathe so every screen shares them. | ![Settings](site/media/screen-settings-x-axis.png) **SETTINGS**: every grblHAL setting, read from the controller, with help text, search, backup and reboot. Jog from the pad beside the DRO, the keyboard arrows (Page Up / Down for C) or the WiFi pendant. |
 
-<img src="docs/screenshots/revturn-phone.png" width="260" align="right" alt="Phone layout">
+<img src="site/media/screen-phone.png" width="260" align="right" alt="Phone layout">
 
 **Machine-like controls everywhere**
 - DRO in diameter (X) and Z, with C shown as **RPM in spindle mode** or **degrees in C-axis mode**.
@@ -61,8 +65,8 @@ chuck (C) in synced moves, nonstop spindle speed and direction changes, and a C-
 - X (cross slide, diameter), Z (carriage), C (chuck: a NEMA 23 that is either the **spindle** under M3/M4 or a
   **rotary C axis**), TB6600 drivers at 16x microstepping (8x on the chuck).
 - ESP32 DevKit (WROOM-32), WiFi to the shop network, WebUI v3, screen served from flash.
-- The lathe screen and the stock WebUI link to each other: **WEBUI** on the lathe screen, a **LATHE** tab in the WebUI
-  (upload [`webui-files/`](webui-files/) to the flash file system).
+- The lathe boots to the REVTURN screen. **SETTINGS** on the screen shows every grblHAL setting; the stock WebUI is a
+  link inside it (at `/webui/`, with a REVTURN tab back; upload [`webui-files/`](webui-files/) to the flash file system).
 - The chuck goes back to C zero the short way at the end of every program (grblHAL rotary wrap, `$538`) instead of
   unwinding hundreds of turns, the same rotary problem **[RotatoCAM](https://rotatocam.com)** deals with on 4-axis mills.
 
@@ -87,7 +91,7 @@ serial terminal. Axis values are in mm and degrees (grblHAL's native units); the
 | `$100` | 800 | X steps/mm: **measured** (X-2 on diameter moved 0.5 in real at 400, so doubled); 8 mm T8 screw |
 | `$102` | 966 | Z steps/mm: **measured** (0.99 in per commanded inch on calipers); belt to an 8 mm T8 screw |
 | `$103` | 13.333 | C steps/deg: C driver at **8x** microstepping (26.667 at 16x, measured: one commanded turn = exactly one chuck turn); 20T to 120T belt |
-| `$110` / `$112` | 1300 / 914.4 | X / Z max rate, mm/min (X 51 in/min; Z **36 in/min**, Rev's pick with Z at 4x microstepping) |
+| `$110` / `$112` | 635 / 635 | X / Z max rate, mm/min: **25 in/min** on both for now (Rev, 2026-11-11). Caps feeds, rapids and jogs |
 | `$113` | 99000 | C max rate, deg/min = **275 rpm** chuck (rpm x 360) |
 | `$120` / `$122` / `$123` | 50 / 12 / 240 | X / Z accel (mm/s²), C accel (deg/s², about 2.5 s to 100 rpm) |
 | `$30` | 275 | Max spindle rpm (the screen's slider tops out here; the stepper spindle is also capped by `$113`) |
@@ -105,9 +109,8 @@ Past that the NEMA 23 (6:1, so 1200 motor rpm at 200 chuck rpm) runs out of torq
 go to 4x (6.667) or a 48 V driver like a DM542 for more.
 
 ## Branches
-- `revturn-lathe` (default): the lathe build. Build with `pio run -e revturn_lathe` (ESP-IDF 4.4).
-- `main`: stock grblHAL ESP32 (0b2d3e1) with every submodule flattened in at its pinned commit, so the
-  difference between the two branches is exactly what this build changes.
+- `main` (default): the lathe build. Build with `pio run -e revturn_lathe` (ESP-IDF 4.4).
+- `revturn-lathe`: kept as an alias of `main` so older links keep working.
 
 ## Changes from stock grblHAL
 | Area | File | Why |

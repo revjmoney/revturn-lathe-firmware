@@ -1,0 +1,139 @@
+/* REVTURN by JMSCNC website. Copyright 2026 JMSCNC / Rev. J. Money (jmscnc.com).
+   The same look as the REVTURN control screen: bezel, black LCD panels, yellow titles, blue soft keys,
+   DOS windows with a double border, HOLD / GO / STOP colours. */
+:root {
+  --bezel: #2b2f33; --bezel-edge: #15181a; --page: #1b1e21; --lcd: #05080a; --text: #e8e8e8; --dim: #9aa6a8;
+  --title: #ffd84a; --info: #8fb3ff; --spindle: #7fffb0; --soft: #1d3a8a; --soft-on: #3a63d4;
+  --go: #2e8b57; --hold: #e0a100; --stop: #c0392b; --win: #b8c4c8; --gold: #f2b52e;
+  --mono: Consolas, "Courier New", ui-monospace, monospace;
+  --sans: Arial, Helvetica, sans-serif;
+  --gutter: max(16px, 3vw);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+body { margin: 0; background: var(--page); color: var(--text); font: 16px/1.55 var(--sans); padding-bottom: 64px; }
+img { max-width: 100%; height: auto; display: block; }
+a { color: var(--title); }
+h1, h2, h3 { font-family: var(--mono); letter-spacing: 2px; margin: 0 0 .5em; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 var(--gutter); }
+.skip { position: absolute; left: -999px; } .skip:focus { left: 8px; top: 8px; background: var(--title); color: #000; padding: 6px; z-index: 99; }
+
+/* top bar: like the screen's */
+.top { position: sticky; top: 0; z-index: 20; background: var(--bezel); border-bottom: 3px solid var(--bezel-edge); }
+.top .wrap { display: flex; align-items: center; gap: 14px; min-height: 56px; flex-wrap: wrap; }
+.brand { display: inline-flex; align-items: center; gap: 8px; text-decoration: none; color: var(--title); font: bold 18px var(--mono); letter-spacing: 3px; }
+.brand img { width: 30px; height: 30px; }
+.brand small { color: var(--dim); font-size: 11px; letter-spacing: 1px; }
+.top nav { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.key { display: inline-block; background: var(--soft); color: #dfe8ff; text-decoration: none; font: bold 13px var(--mono); letter-spacing: 1px;
+  padding: 7px 12px; border-radius: 4px; border: 1px solid #2f4fa8; }
+.key:hover, .key.on { background: var(--soft-on); color: #fff; }
+.key.buy { background: var(--go); border-color: #3fae70; color: #fff; }
+.key.coffee { background: var(--title); border-color: #000; color: #05080a; }
+
+/* the LCD panel and the DOS window */
+.lcd { background: var(--lcd); border: 3px solid #111; border-radius: 8px; padding: 18px; }
+.win { background: var(--lcd); border: 6px double var(--win); box-shadow: 10px 10px 0 #000; margin: 34px 0; }
+.win > .bar { background: var(--win); color: #05080a; text-align: center; font: bold 15px var(--mono); letter-spacing: 3px; padding: 4px 8px; }
+.win > .body { padding: clamp(14px, 3vw, 28px); }
+.win h2 { color: var(--title); font-size: clamp(20px, 3vw, 28px); }
+.win h3 { color: var(--info); font-size: 16px; margin-top: 1.4em; }
+.lead { font-size: 18px; color: #cfd8dc; max-width: 70ch; }
+.dim { color: var(--dim); }
+.mono { font-family: var(--mono); }
+
+/* hero */
+.hero { padding: 26px 0 8px; }
+.hero .win { margin-top: 10px; }
+.hero-grid { display: grid; grid-template-columns: 1.05fr 1fr; gap: 28px; align-items: center; }
+.hero-logo { width: min(520px, 100%); }
+.tag { font: bold clamp(18px, 2.6vw, 26px)/1.3 var(--mono); color: #fff; margin: 14px 0 6px; }
+.dro { font-family: var(--mono); background: #000; border: 1px solid #223; border-radius: 6px; padding: 10px 14px; margin: 16px 0; }
+.dro div { display: flex; align-items: baseline; gap: 14px; line-height: 1.1; }
+.dro b { color: #fff; font-size: 30px; width: 1ch; }
+.dro span { color: #fff; font-size: clamp(26px, 4vw, 40px); font-weight: bold; font-variant-numeric: tabular-nums; }
+.dro i { color: var(--dim); font-style: normal; font-size: 12px; }
+.dro .c b, .dro .c span { color: var(--spindle); }
+.ctas { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+.btn { display: inline-block; text-decoration: none; font: bold 17px var(--sans); padding: 14px 22px; border-radius: 8px; border: 0; color: #fff; text-align: center; }
+.btn.go { background: var(--go); } .btn.hold { background: var(--hold); color: #111; } .btn.soft { background: var(--soft); }
+.btn.stop { background: var(--stop); } .btn.coffee { background: var(--title); color: #05080a; box-shadow: 3px 3px 0 #000; }
+.btn small { display: block; font-weight: normal; font-size: 12px; opacity: .85; }
+.hero-shot { border: 3px solid #111; border-radius: 8px; box-shadow: 0 10px 40px #000a; }
+
+/* features */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.card { background: #0b1117; border: 1px solid #1d2a36; border-left: 3px solid var(--soft-on); border-radius: 4px; padding: 14px 16px; }
+.card h3 { margin: 0 0 .4em; color: var(--title); font-size: 15px; letter-spacing: 1px; }
+.card p { margin: 0; color: #cfd8dc; font-size: 15px; }
+
+/* screen gallery: soft keys pick the screen, like the real thing */
+.gallery .keys { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.gallery .keys button { background: var(--soft); color: #dfe8ff; border: 0; border-radius: 3px; padding: 9px 14px; font: bold 13px var(--mono); letter-spacing: 1px; cursor: pointer; }
+.gallery .keys button.on { background: var(--soft-on); color: #fff; }
+.gallery figure { margin: 0; }
+.gallery figure img { border: 3px solid #111; border-radius: 6px; cursor: zoom-in; width: 100%; }
+.gallery figcaption { margin-top: 10px; color: #cfd8dc; }
+.gallery figcaption b { color: var(--title); font-family: var(--mono); letter-spacing: 1px; }
+.thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 14px; }
+.thumbs img { border: 2px solid #1d2a36; border-radius: 4px; cursor: zoom-in; }
+
+/* product */
+.product { display: grid; grid-template-columns: 1fr 1.1fr; gap: 26px; align-items: start; }
+.price { font: bold 44px var(--mono); color: var(--title); }
+.price small { font-size: 16px; color: var(--dim); font-weight: normal; }
+.box-list { list-style: none; padding: 0; margin: 10px 0; }
+.box-list li { padding: 6px 0 6px 26px; position: relative; border-bottom: 1px dashed #1d2a36; }
+.box-list li::before { content: "■"; position: absolute; left: 4px; color: var(--spindle); }
+.box-list li.no::before { content: "□"; color: var(--dim); }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid #1d2a36; vertical-align: top; }
+th { color: var(--info); font-family: var(--mono); font-weight: bold; letter-spacing: 1px; }
+td code, li code, p code { color: var(--spindle); font-family: var(--mono); font-size: .95em; }
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps li { counter-increment: s; padding: 8px 0 8px 46px; position: relative; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 6px; width: 32px; height: 32px; background: var(--soft); color: #fff;
+  font: bold 15px/32px var(--mono); text-align: center; border-radius: 4px; }
+.note { border-left: 3px solid var(--hold); background: #17140a; padding: 10px 14px; color: #e8dcb0; margin: 14px 0; }
+
+/* lathe pictures */
+.pics { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.pics figure { margin: 0; background: #0b1117; border: 1px solid #1d2a36; border-radius: 4px; padding: 8px; }
+.pics img { cursor: zoom-in; border-radius: 3px; background: #fff; }
+.pics figcaption { font-size: 14px; color: #cfd8dc; margin-top: 6px; }
+.video { position: relative; aspect-ratio: 16 / 9; border: 3px solid #111; border-radius: 6px; overflow: hidden; background: #000; }
+.video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+
+/* coffee panel */
+.coffee-panel { display: grid; grid-template-columns: auto 1fr; gap: 22px; align-items: center; }
+.coffee-panel img { width: 180px; }
+
+/* links + footer */
+.links { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
+.links a { display: block; text-decoration: none; background: #0b1117; border: 1px solid #1d2a36; border-radius: 4px; padding: 12px 14px; color: #fff; }
+.links a b { display: block; color: var(--title); font-family: var(--mono); letter-spacing: 1px; }
+.links a span { color: var(--dim); font-size: 14px; }
+footer { color: var(--dim); font-size: 14px; padding: 30px 0 10px; text-align: center; }
+footer a { color: var(--dim); }
+
+/* bottom soft-key bar, like the screen's mode keys */
+.softbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; background: var(--bezel); border-top: 3px solid var(--bezel-edge);
+  display: flex; gap: 6px; padding: 7px var(--gutter); overflow-x: auto; }
+.softbar a { flex: 1 0 auto; text-align: center; text-decoration: none; background: var(--soft); color: #dfe8ff; font: bold 13px var(--mono);
+  letter-spacing: 1px; padding: 10px 12px; border-radius: 3px; }
+.softbar a.on { background: var(--soft-on); color: #fff; }
+.softbar a.buy { background: var(--go); color: #fff; }
+
+/* lightbox */
+dialog.zoom { padding: 0; border: 6px double var(--win); background: var(--lcd); max-width: 96vw; max-height: 94vh; }
+dialog.zoom::backdrop { background: #000c; }
+dialog.zoom img { max-height: 86vh; width: auto; }
+dialog.zoom .bar { background: var(--win); color: #05080a; font: bold 14px var(--mono); letter-spacing: 2px; padding: 4px 8px; display: flex; justify-content: space-between; }
+dialog.zoom button { background: var(--title); border: 0; font: bold 13px var(--mono); padding: 3px 12px; cursor: pointer; }
+
+@media (max-width: 860px) {
+  .hero-grid, .product, .coffee-panel { grid-template-columns: 1fr; }
+  .top nav .hide-sm { display: none; }
+  .win { box-shadow: 5px 5px 0 #000; }
+}

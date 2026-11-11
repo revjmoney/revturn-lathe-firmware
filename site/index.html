@@ -1,0 +1,268 @@
+<!doctype html>
+<!-- REVTURN by JMSCNC. Copyright 2026 JMSCNC / Rev. J. Money (jmscnc.com). -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>REVTURN by JMSCNC: a touch-screen CNC lathe controller on an ESP32</title>
+<meta name="description" content="REVTURN is a ProtoTRAK / Fanuc style CNC lathe control screen built into grblHAL on a $5 ESP32. Conversational cycles, threading by Z and C sync, live backplot, every grblHAL setting, open source. Buy one preflashed from JMSCNC.">
+<meta name="theme-color" content="#2b2f33">
+<meta name="author" content="JMSCNC / Rev. J. Money">
+<meta property="og:title" content="REVTURN by JMSCNC">
+<meta property="og:description" content="A touch-screen CNC lathe controller on a $5 ESP32: conversational cycles, threading, live backplot, phone or tablet, no PC.">
+<meta property="og:image" content="https://revjmoney.github.io/revturn-lathe-firmware/media/screen-run.png">
+<meta property="og:url" content="https://revjmoney.github.io/revturn-lathe-firmware/">
+<link rel="icon" type="image/png" href="media/favicon.png">
+<link rel="apple-touch-icon" href="media/apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top"><img src="media/favicon.png" alt="" width="30" height="30">REVTURN <small>by JMSCNC</small></a>
+    <nav aria-label="Main">
+      <a class="key hide-sm" href="#screens">SCREENS</a>
+      <a class="key hide-sm" href="#features">FEATURES</a>
+      <a class="key hide-sm" href="#lathe">THE LATHE</a>
+      <a class="key hide-sm" href="https://github.com/revjmoney/revturn-lathe-firmware">GITHUB</a>
+      <a class="key coffee" href="https://buymeacoffee.com/revjmoney">☕ COFFEE</a>
+      <a class="key buy" href="#buy">BUY ONE</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero" id="top">
+  <div class="wrap">
+    <div class="win">
+      <div class="bar">[ REVTURN ]</div>
+      <div class="body hero-grid">
+        <div>
+          <h1 class="sr-only" style="position:absolute;left:-999px">REVTURN by JMSCNC</h1>
+          <img class="hero-logo" src="media/revturn-header.png" alt="REVTURN by JMSCNC" width="742" height="200">
+          <p class="tag">A touch-screen CNC lathe controller on a $5 ESP32.</p>
+          <p class="lead">ProtoTRAK / Fanuc style conversational control, built into the <b>grblHAL</b> firmware and served
+            from the lathe itself. Open it on a phone, a tablet by the machine or a PC. No app, no sender, no cloud.</p>
+          <div class="dro" aria-hidden="true">
+            <div><b>X</b><span>1.2500</span><i>DIA</i></div>
+            <div><b>Z</b><span>-0.7500</span><i>ABS</i></div>
+            <div class="c"><b>S</b><span>275 RPM</span><i>FWD</i></div>
+          </div>
+          <div class="ctas">
+            <a class="btn go" href="#buy">BUY ONE PREFLASHED<small>$125 + $9 shipping</small></a>
+            <a class="btn soft" href="https://github.com/revjmoney/revturn-lathe-firmware">GET IT ON GITHUB<small>free, open source</small></a>
+            <a class="btn coffee" href="https://buymeacoffee.com/revjmoney">☕ BUY ME A COFFEE<small>keep the lathe turning</small></a>
+          </div>
+        </div>
+        <img class="hero-shot zoomable" src="media/screen-run.png" alt="The REVTURN RUN screen: one-line DRO with set and actual speeds, overrides, live backplot and the program" width="1280" height="800">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="what">
+  <div class="wrap">
+    <div class="win">
+      <div class="bar">[ WHAT IT IS ]</div>
+      <div class="body">
+        <h2>A real lathe control, not a g-code sender</h2>
+        <p class="lead">REVTURN turns a $5 ESP32 into the brains of a CNC lathe. The motion runs on <b>grblHAL</b>, the
+          proven open-source CNC firmware. On top of it sits a full control screen, served by the ESP32 over WiFi: big
+          DRO, HOLD / GO / STOP always on screen, conversational cycles you fill in like a ProtoTRAK, programs, a live
+          backplot and every machine setting, all in one look.</p>
+        <div class="grid">
+          <div class="card"><h3>NO PC</h3><p>The screen lives in the controller's flash. Any browser on the shop WiFi is the control panel: phone, tablet, laptop, all at once.</p></div>
+          <div class="card"><h3>SPINDLE OR C AXIS</h3><p>The chuck motor is a stepper: a spindle in rpm under M3 / M4, or a rotary C axis in degrees for threading, indexing and polygons.</p></div>
+          <div class="card"><h3>THREADS WITHOUT AN ENCODER</h3><p>Threading moves Z and C together in lockstep, so the pitch is exact without a spindle encoder.</p></div>
+          <div class="card"><h3>OPEN SOURCE</h3><p>Firmware, screen, printed parts and every FreeCAD source are on GitHub. Build your own, or buy a board ready to wire.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="screens">
+  <div class="wrap">
+    <div class="win gallery">
+      <div class="bar">[ THE SCREENS ]</div>
+      <div class="body">
+        <h2>Every screen, straight off the lathe</h2>
+        <p class="dim">Tap a key to switch screens, like on the real thing. Tap a picture to zoom.</p>
+        <div class="keys" role="tablist" data-keys></div>
+        <figure><img data-shot class="zoomable" src="media/screen-dro.png" alt="" width="1280" height="800"><figcaption data-cap></figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="features">
+  <div class="wrap">
+    <div class="win">
+      <div class="bar">[ FEATURES ]</div>
+      <div class="body">
+        <h2>Built like a machine control</h2>
+        <div class="grid">
+          <div class="card"><h3>CONVERSATIONAL CYCLES</h3><p>Face, turn (taper, chamfer, radius), bore, thread, groove / part-off, peck drill, polygon flats and index. Fill in the form, GO previews the toolpath, GO again runs it.</p></div>
+          <div class="card"><h3>PROGRAMS</h3><p>Chain cycles and raw g-code steps into a program, save it on the lathe, import Fusion 360 lathe posts. Dry run (air cut) first if you like.</p></div>
+          <div class="card"><h3>LIVE BACKPLOT</h3><p>Watch the tool trace over the planned path with a live tool marker, and a one-line DRO across the top of RUN with set and actual feed and rpm.</p></div>
+          <div class="card"><h3>HOLD / GO / STOP</h3><p>Always on screen, on every screen. Feed, spindle and rapid overrides. Alarms explained in plain words, with RESET and UNLOCK.</p></div>
+          <div class="card"><h3>TOOL TABLE</h3><p>T1 to T8 with touch-off (offsets from T1), picked with one tap, and stored stroke limits. Saved on the lathe, so every screen shares them.</p></div>
+          <div class="card"><h3>JOG ANY WAY</h3><p>Step or continuous jog from the pad, the keyboard arrows (Page Up / Down for the chuck), or a WiFi jog-wheel pendant.</p></div>
+          <div class="card"><h3>EVERY SETTING</h3><p>SETTINGS reads grblHAL's own list: all 128 settings in 19 groups, with the right control for each, help text, search, backup and reboot.</p></div>
+          <div class="card"><h3>MANY SCREENS</h3><p>Any number of phones and tablets at once. Any of them can HOLD or STOP; a running program shows live on all of them.</p></div>
+          <div class="card"><h3>SHORT-WAY HOME</h3><p>The chuck goes back to C zero the short way at the end of a program instead of unwinding hundreds of turns.</p></div>
+          <div class="card"><h3>WIFI THAT STAYS UP</h3><p>Rejoins the network by itself after a drop. Find it at <code>revturn.local</code>. Crash-safe step timing for the stepper spindle.</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="buy">
+  <div class="wrap">
+    <div class="win">
+      <div class="bar">[ BUY ONE ]</div>
+      <div class="body product">
+        <div>
+          <img class="zoomable" src="media/screen-phone.png" alt="REVTURN on a phone" width="390" height="844" style="max-width:300px;margin:0 auto;border:3px solid #111;border-radius:8px">
+        </div>
+        <div>
+          <h2>REVTURN controller board, preflashed</h2>
+          <div class="price">$125 <small>+ $9 shipping (US)</small></div>
+          <p class="lead">A bare ESP32 on a screw-terminal breakout board, flashed with the REVTURN firmware and screen and
+            tested before it ships. Wire it to your stepper drivers, power it up, open the screen.</p>
+          <ul class="box-list">
+            <li>ESP32 DevKit (WROOM-32, 4 MB, USB) on a screw-terminal breakout board</li>
+            <li>REVTURN firmware (grblHAL) and the REVTURN screen, flashed and tested</li>
+            <li>Set up as a lathe: X, Z and the chuck as spindle or C axis</li>
+            <li class="no">Not included: stepper drivers, motors, power supply or the lathe</li>
+          </ul>
+          <div class="ctas">
+            <a class="btn go" href="https://jmscnc.com/product/revturn-lathe-controller/">BUY ON JMSCNC.COM</a>
+            <a class="btn soft" href="https://jmscnc.com/revturn/">MORE ON JMSCNC.COM</a>
+          </div>
+          <h3>Wiring (screw terminals)</h3>
+          <table>
+            <thead><tr><th>Signal</th><th>ESP32 pin</th><th>Goes to</th></tr></thead>
+            <tbody>
+              <tr><td>X step / dir</td><td><code>GPIO 16</code> / <code>17</code></td><td>Cross slide driver (TB6600 or similar)</td></tr>
+              <tr><td>Z step / dir</td><td><code>GPIO 21</code> / <code>22</code></td><td>Carriage driver</td></tr>
+              <tr><td>C step / dir</td><td><code>GPIO 18</code> / <code>19</code></td><td>Chuck driver (spindle or C axis)</td></tr>
+              <tr><td>Stepper enable</td><td><code>GPIO 23</code></td><td>Driver enable inputs (shared)</td></tr>
+              <tr><td>PWM spindle</td><td><code>GPIO 4</code> (PWM), <code>13</code> (enable)</td><td>Optional router / live tool</td></tr>
+              <tr><td>Limits (spare)</td><td><code>GPIO 32</code>, <code>33</code>, <code>27</code></td><td>X, Y, Z limit inputs, not wired by default</td></tr>
+            </tbody>
+          </table>
+          <p class="note">Every machine is different: after wiring, set steps per mm (or per degree), max rates and
+            acceleration for your screws, belts and motors in <b>SETTINGS</b>. The GitHub page has the settings from the
+            REVTURN lathe as a starting point.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="build">
+  <div class="wrap">
+    <div class="win">
+      <div class="bar">[ BUILD YOUR OWN ]</div>
+      <div class="body">
+        <h2>Free and open: flash it yourself</h2>
+        <ol class="steps">
+          <li>Get an ESP32 DevKit (WROOM-32, 4 MB) and wire it to your drivers using the table above.</li>
+          <li>Build and flash the firmware from <a href="https://github.com/revjmoney/revturn-lathe-firmware">GitHub</a> with PlatformIO: <code>pio run -e revturn_lathe -t upload</code>.</li>
+          <li>Connect it to your shop WiFi, then open <code>http://revturn.local/</code> on any phone, tablet or PC.</li>
+          <li>Set your machine up in <b>SETTINGS</b> (steps, rates, lathe mode) and your tools in <b>SET UP</b>. Make chips.</li>
+        </ol>
+        <p>The firmware is grblHAL with the REVTURN changes, under the GNU GPL v3. The printed parts are CC BY-SA 4.0.
+          Everything is on <a href="https://github.com/revjmoney/revturn-lathe-firmware">GitHub</a>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="lathe">
+  <div class="wrap">
+    <div class="win">
+      <div class="bar">[ THE LATHE ]</div>
+      <div class="body">
+        <h2>The junk-bin lathe it was built on</h2>
+        <p class="lead">REVTURN grew up on a 3D-printed mini lathe put together from what was laying around the shop:
+          rails from a 3018 CNC upgrade and a scrapped 3D printer, an AliExpress headstock, a Cricut stepper and a
+          StepperOnline NEMA 23 on the chuck. Every printed part is an original FreeCAD design, with the source on GitHub
+          so you can change a number and rebuild it for your own parts.</p>
+        <div class="video"><iframe src="https://www.youtube-nocookie.com/embed/2WnQ3KHcuW8" title="REVTURN first run with all 3 motors linked" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
+        <p class="dim">First test run with all 3 motors linked: X, Z and the chuck in synced moves, nonstop spindle speed and direction changes, and a C-axis threading cycle.</p>
+        <div class="pics">
+          <figure><img class="zoomable" src="media/drawings_r9.png" alt="R9 cross slide drawings" loading="lazy"><figcaption><b>R9 cross slide.</b> Long X travel, rides the printed saddle on the Z rails.</figcaption></figure>
+          <figure><img class="zoomable" src="media/drawings_bases.png" alt="Bed end drawings" loading="lazy"><figcaption><b>Bed ends.</b> Clamp both Z rails and carry the Z screw bearings.</figcaption></figure>
+          <figure><img class="zoomable" src="media/x_motor_inline_rail_mount_both_options.png" alt="Inline X motor mount, both options" loading="lazy"><figcaption><b>Inline X motor mount.</b> NEMA 17 in line with the X screw on split clamp collars.</figcaption></figure>
+          <figure><img class="zoomable" src="media/tool_post_turning_iso.png" alt="Printed tool post" loading="lazy"><figcaption><b>Tool post.</b> Height-adjustable, swivels to 0, 45 and 90 degrees, all printed.</figcaption></figure>
+          <figure><img class="zoomable" src="media/tool_post_solid_quarter_iso.png" alt="Solid quarter inch tool holder" loading="lazy"><figcaption><b>Solid 1/4 in holder.</b> Clamp screws as close to the cutting point as they go.</figcaption></figure>
+          <figure><img class="zoomable" src="media/tool_post_angles_top.png" alt="Tool post at all three angles" loading="lazy"><figcaption><b>Three stops.</b> 0, 45 and 90 degrees, or anywhere in between.</figcaption></figure>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="coffee">
+  <div class="wrap">
+    <div class="win">
+      <div class="bar">[ BUY ME A COFFEE ]</div>
+      <div class="body coffee-panel">
+        <img src="media/jmscnc-monkey.png" alt="The JMSCNC monkey" width="449" height="480" loading="lazy">
+        <div>
+          <h2>Like REVTURN? Keep it turning.</h2>
+          <p class="lead">REVTURN is free and open source. If it helped you, or you just like watching junk turn into a
+            lathe, a coffee keeps the designs and the updates coming.</p>
+          <a class="btn coffee" href="https://buymeacoffee.com/revjmoney">☕ BUY ME A COFFEE</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="links">
+  <div class="wrap">
+    <div class="win">
+      <div class="bar">[ LINKS ]</div>
+      <div class="body links">
+        <a href="https://github.com/revjmoney/revturn-lathe-firmware"><b>GITHUB</b><span>Firmware, screen, printed parts, FreeCAD sources</span></a>
+        <a href="https://jmscnc.com/revturn/"><b>JMSCNC.COM/REVTURN</b><span>REVTURN on the JMSCNC site</span></a>
+        <a href="https://jmscnc.com/product/revturn-lathe-controller/"><b>BUY A BOARD</b><span>Preflashed controller, $125 + $9 shipping</span></a>
+        <a href="https://buymeacoffee.com/revjmoney"><b>BUY ME A COFFEE</b><span>Support REVTURN</span></a>
+        <a href="https://www.youtube.com/watch?v=2WnQ3KHcuW8"><b>YOUTUBE</b><span>Watch the first run</span></a>
+        <a href="https://rotatocam.com"><b>ROTATOCAM</b><span>4- and 3-axis CAM for DIY CNC, by the same maker</span></a>
+        <a href="https://github.com/grblHAL"><b>GRBLHAL</b><span>The motion firmware REVTURN is built on</span></a>
+        <a href="https://jmscnc.com"><b>JMSCNC.COM</b><span>The shop</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <img src="media/jmscnc-wordmark.png" alt="JMSCNC" width="198" height="29" style="margin:0 auto 10px;opacity:.9">
+    <p>REVTURN © 2026 <a href="https://jmscnc.com">JMSCNC</a> · Rev. J. Money ·
+      <a href="https://buymeacoffee.com/revjmoney">Buy me a coffee</a></p>
+    <p>Built on <a href="https://github.com/grblHAL">grblHAL</a> (© Terje Io and contributors, GNU GPL v3) and
+      <a href="https://github.com/luc-github/ESP3D-WEBUI">ESP3D-WebUI</a> (© Luc Lebosse, GNU GPL v3). REVTURN firmware changes
+      GPL v3, printed parts CC BY-SA 4.0.</p>
+  </div>
+</footer>
+
+<nav class="softbar" aria-label="Sections">
+  <a href="#top">HOME</a><a href="#screens">SCREENS</a><a href="#features">FEATURES</a><a class="buy" href="#buy">BUY</a>
+  <a href="#build">BUILD</a><a href="#lathe">LATHE</a><a href="#coffee">COFFEE</a><a href="https://github.com/revjmoney/revturn-lathe-firmware">GITHUB</a>
+</nav>
+
+<dialog class="zoom" data-zoom><div class="bar"><span data-zoom-title></span><button data-zoom-close>CLOSE</button></div><img data-zoom-img alt=""></dialog>
+<script src="site.js"></script>
+</body>
+</html>
