@@ -4,6 +4,7 @@
   Part of grblHAL
 
   Copyright (c) 2023 - 2026 Terje Io
+  REVTURN changes Copyright (c) 2026 JMSCNC / Rev. J. Money (jmscnc.com), same license.
 
   grblHAL is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by

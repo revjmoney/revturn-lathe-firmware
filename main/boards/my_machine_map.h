@@ -10,6 +10,7 @@
     C  spindle       DM542T   STEP 18  DIR 19  (last axis, so the stepper spindle binds here)
     Y  not used, parked on 25/26 because grblHAL always has X, Y and Z.
 
+  Copyright (c) 2026 JMSCNC / Rev. J. Money (jmscnc.com).
   Part of grblHAL, GPL-3.0-or-later.
 */
 
@@ -17,7 +18,7 @@
 #error "Lathe map expects N_AXIS 4 (X Y Z C)."
 #endif
 
-#define BOARD_NAME "REVTURN lathe ESP32"
+#define BOARD_NAME "REVTURN by JMSCNC (ESP32 lathe)"
 
 #define X_STEP_PIN              GPIO_NUM_16
 #define X_DIRECTION_PIN         GPIO_NUM_17

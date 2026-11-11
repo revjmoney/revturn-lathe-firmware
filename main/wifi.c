@@ -6,6 +6,7 @@
   Part of grblHAL
 
   Copyright (c) 2018-2026 Terje Io
+  REVTURN changes Copyright (c) 2026 JMSCNC / Rev. J. Money (jmscnc.com), same license.
 
   Some parts of the code is based on example code by Espressif, in the public domain
 

@@ -1,9 +1,23 @@
 {
  "settings": {
+  "showjogpanel": false,
+  "showspindlepanel": false,
+  "showstatuspanel": false,
+  "showoverridespanel": false,
+  "showprobepanel": false,
+  "showlaserpanel": false,
   "showextracontents": true,
   "openextrapanelsonstart": false,
   "extracontents": [
-   { "id": "lathe", "name": "LATHE", "icon": "Tool", "target": "page", "source": "/golathe.html", "type": "content", "refreshtime": 0 }
+   {
+    "id": "lathe",
+    "name": "REVTURN",
+    "icon": "Tool",
+    "target": "page",
+    "source": "/golathe.html",
+    "type": "content",
+    "refreshtime": 0
+   }
   ]
  }
 }

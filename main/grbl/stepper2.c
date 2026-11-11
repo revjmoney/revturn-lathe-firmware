@@ -4,6 +4,7 @@
   Part of grblHAL
 
   Copyright (c) 2023-2026 Terje Io
+  REVTURN changes Copyright (c) 2026 JMSCNC / Rev. J. Money (jmscnc.com), same license.
 
   Algorithm based on article/code by David Austin:
   https://www.embedded.com/generate-stepper-motor-speed-profiles-in-real-time/

@@ -1,8 +1,11 @@
-# REVTURN: a touch-screen CNC lathe controller on an ESP32
+# REVTURN by JMSCNC: a touch-screen CNC lathe controller on an ESP32
 
 A mini CNC lathe running **grblHAL** on a $5 ESP32, with a **ProtoTRAK / Fanuc style control screen built into
-the firmware**. Open `http://<lathe>/lathe.html` on a phone, a tablet by the machine, or a PC. No app, no
-sender, no cloud.
+the firmware**. Open `http://revturn.local/` (or the lathe's IP) on a phone, a tablet by the machine, or a PC: it boots
+straight to REVTURN. The stock grblHAL WebUI is still there for settings, behind the **WEBUI** button (`/webui/`).
+No app, no sender, no cloud.
+
+REVTURN is made by **[JMSCNC](https://jmscnc.com)** (Rev. J. Money). Copyright 2026 JMSCNC / Rev. J. Money.
 
 From the maker of **[RotatoCAM](https://rotatocam.com)**: 4- and 3-axis CAM for DIY CNC. *Spin the stock. Read the signal.*
 
@@ -117,7 +120,7 @@ go to 4x (6.667) or a 48 V driver like a DM542 for more.
 | Multi-screen | `main/networking/websocketd.c/.h` | Output copied to every WebUI client; non-owners may send reset / feed hold / jog cancel / status. |
 | Pendant guest | `main/networking/websocketd.c` | A client that connects with `revturn-guest` never takes control from a screen (it does when no client has the stream). Guests may also send cycle start, single block, optional stop and the feed / rapid / spindle overrides (handle-driven program stepping), and whole jog (`$J=`), zero/set (`G10 L20 P0`), spindle (`M3`/`M4`/`M5`/`S`) and query (`$G`, `$#`, `$30`) lines while the lathe is Idle or jogging and the screen has nothing half-sent. |
 | Build options | `main/CMakeLists.txt`, `main/boards/my_machine_map.h`, `main/grbl/gcode.c` | g-code expressions (`#` variables, `[math]`, SIN/COS/SQRT..., O-word loops and subroutines, `G65 P6`), acceleration profiles (with a fix: grblHAL left jogs at zero acceleration, so they crawled and hung the planner), backlash compensation, tool nose radius comp (G41/G42, parenthesis fix for `-Werror`), mDNS. Jerk-limited motion was tried and is **off**: grblHAL's version snaps the step rate to full speed at the end of its ramp and stalled the steppers. **Turning these on resets all stored settings**: write your settings down first. |
-| WebUI server | `main/webui/server.c` | Reports the STA IP, serves the embedded `lathe.html.gz`, broadcasts the controlling client. |
+| WebUI server | `main/webui/server.c` | Reports the STA IP, serves the REVTURN screen at `/` (embedded `lathe.html.gz`, a flash copy wins), moves the stock WebUI to `/webui/`, broadcasts the controlling client. |
 | Machine | `main/my_machine.h`, `main/boards/my_machine_map.h`, `platformio.ini`, `main/CMakeLists.txt` | Lathe pin map, PWM spindle 1 (PWM on GPIO4, enable on GPIO13; moved off the GPIO5 boot strap pin so a router never switches on during a reset), WebUI v3, LittleFS, embedded screen. |
 
 The screen itself (plain JS, 283 tests) lives in a separate repo; its built, gzipped page is
@@ -125,7 +128,10 @@ The screen itself (plain JS, 283 tests) lives in a separate repo; its built, gzi
 
 ## Credits and licenses
 - **Firmware:** [grblHAL](https://github.com/grblHAL) by Terje Io and contributors, GPL v3 (see `README-grblHAL.md`
-  and `COPYING`). The REVTURN changes are under the same license.
+  and `COPYING`). The REVTURN changes are Copyright 2026 JMSCNC / Rev. J. Money, under the same license.
+- **Settings page:** [ESP3D-WebUI](https://github.com/luc-github/ESP3D-WEBUI) 3.0 by Luc Lebosse, GPL v3 (only its page
+  title is changed, to "REVTURN Settings (grblHAL)"). Shipped in `webui-files/`.
+- **REVTURN screen and branding:** Copyright 2026 JMSCNC / Rev. J. Money. The monkey mascot is JMSCNC's.
 - **Printed parts** (`hardware/`): STL, STEP and drawings by Rev. J. Money, licensed
   [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/). Remix them, print them, sell parts if you like;
   credit the original and share your changes under the same license. See [`hardware/LICENSE.md`](hardware/LICENSE.md).

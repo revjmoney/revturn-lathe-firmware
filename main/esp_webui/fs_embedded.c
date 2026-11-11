@@ -8,6 +8,7 @@
   Copyright (c) 2022-2026 Terje Io
 
   File data is extracted from files Copyright (c) 2021 Luc Lebosse
+  REVTURN changes Copyright (c) 2026 JMSCNC / Rev. J. Money (jmscnc.com), same license.
   https://github.com/luc-github/ESP3D-webui
 
   grblHAL is free software: you can redistribute it and/or modify

@@ -2,6 +2,7 @@
   Part of grblHAL
 
   Copyright (c) 2020-2025 Terje Io
+  REVTURN changes Copyright (c) 2026 JMSCNC / Rev. J. Money (jmscnc.com), same license.
 
   grblHAL is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -179,15 +180,15 @@
 //#define WEBDAV_ENABLE         1 // webdav protocol - requires http daemon and SD card enabled.
 #endif
 // The following symbols have the default values as shown, uncomment and change as needed.
-//#define NETWORK_STA_HOSTNAME    "grblHAL"
+#define NETWORK_STA_HOSTNAME    "revturn" // REVTURN by JMSCNC (Rev 2026-11-11)
 //#define NETWORK_STA_IPMODE      1 // 0 = static, 1 = DHCP, 2 = AutoIP
 //#define NETWORK_STA_IP          "192.168.5.1"
 //#define NETWORK_STA_GATEWAY     "192.168.5.1"
 //#define NETWORK_STA_MASK        "255.255.255.0"
 #if WIFI_SOFTAP
-//#define NETWORK_AP_SSID         "grblHAL_AP"
+#define NETWORK_AP_SSID         "REVTURN_AP" // REVTURN by JMSCNC (Rev 2026-11-11)
 //#define NETWORK_AP_PASSWORD     "grblHALap"
-//#define NETWORK_AP_HOSTNAME     "grblHAL_AP"
+#define NETWORK_AP_HOSTNAME     "revturn-ap"
 //#define NETWORK_AP_IPMODE       0              // Do not change!
 //#define NETWORK_AP_IP           "192.168.4.1"  // Do not change!
 //#define NETWORK_AP_GATEWAY      "192.168.4.1"  // Do not change!

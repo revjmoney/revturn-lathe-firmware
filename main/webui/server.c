@@ -6,6 +6,7 @@
   Part of grblHAL
 
   Copyright (c) 2019-2026 Terje Io
+  REVTURN changes Copyright (c) 2026 JMSCNC / Rev. J. Money (jmscnc.com), same license.
 
   grblHAL is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -805,7 +806,22 @@ FLASHMEM const char *file_redirect (http_request_t *request, const char *uri, vf
     else
         *path = '\0';
 
-    if(!strcmp(uri, "/")) {
+    // REVTURN (Rev 2026-11-11, Copyright 2026 JMSCNC): the lathe boots to the REVTURN screen at "/".
+    // The stock WebUI (grblHAL settings) moved to /webui/; ?forcefallback=yes still reaches maintenance.
+    static char revturn_uri[24];
+    bool is_root = !strcmp(uri, "/");
+    bool is_webui = !strcmp(uri, "/webui/") || !strcmp(uri, "/webui");
+#if WEBUI_INFLASH
+    char ff[5];
+    bool force_fallback = (is_root || is_webui) && http_get_param_value(request, "forcefallback", ff, sizeof(ff)) != NULL && !strcmp(ff, "yes");
+#else
+    bool force_fallback = false;
+#endif
+
+    if(is_root && !force_fallback) {
+        maintenance_mode = false;
+        uri = strcpy(revturn_uri, "/lathe.html"); // found below: flash /lathe.html.gz first, then the built-in copy
+    } else if(is_root || is_webui) {
 
 #if WEBUI_INFLASH
         char fallback[5];
