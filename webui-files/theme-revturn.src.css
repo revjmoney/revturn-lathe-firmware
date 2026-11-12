@@ -1,0 +1,82 @@
+/* SPDX-License-Identifier: GPL-3.0-or-later
+   REVTURN by JMSCNC, Copyright (C) 2026 Rev. J. Money / JMSCNC (jmscnc.com).
+   Licensed GPL-3.0-or-later; keep this attribution (GPLv3 section 7(b), see NOTICE.md).
+
+   REVTURN theme for the stock grblHAL / ESP3D-WebUI 3.0 page (the WebUI behind SETTINGS). The WebUI loads a
+   theme-<name>.gz file as plain CSS into <style id="themestyle">; preferences.json picks it by default.
+   It only restyles: the ESP3D-WebUI code (by Luc Lebosse, GPL v3) is untouched. Colours = the REVTURN screen:
+   dark bezel, black LCD panels, yellow titles, blue soft keys, light keys, green / amber / red for go / hold / stop.
+   The header logo (the LOGO placeholder below) is filled in by make-theme.mjs from lathe-ui/src/brand/header-64.png. */
+:root {
+  --rt-bezel: #2b2f33; --rt-edge: #15181a; --rt-lcd: #05080a; --rt-text: #e8e8e8; --rt-dim: #9aa;
+  --rt-title: #ffd84a; --rt-info: #8fb3ff; --rt-soft: #1d3a8a; --rt-soft-on: #3a63d4;
+  --rt-key: #e9ecef; --rt-key-text: #111; --rt-go: #2e8b57; --rt-hold: #e0a100; --rt-stop: #c0392b;
+}
+html, body, #app { background: var(--rt-bezel) !important; color: var(--rt-text) !important; }
+body { font-family: "Segoe UI", Roboto, Arial, sans-serif !important; }
+a, .text-primary { color: var(--rt-info) !important; }
+.text-dark, .text-label, .text-straight { color: var(--rt-text) !important; }
+.text-tiny, .text-gray, .form-input-hint { color: var(--rt-dim) !important; }
+.text-error, .has-error .form-input-hint { color: #ff7a6b !important; }
+
+/* header: REVTURN logo instead of the ESP3D mark, yellow on the dark edge */
+.navbar { background: var(--rt-edge) !important; border-bottom: 2px solid var(--rt-soft) !important; color: var(--rt-title) !important; }
+.navbar .navbar-section:first-child > *:first-child svg,
+.navbar .navbar-section:first-child > a:first-child img { display: none !important; }
+.navbar .navbar-section:first-child::before {
+  content: ""; display: inline-block; width: 120px; height: 34px; margin: 2px 10px 2px 6px;
+  background: url("@@LOGO@@") left center / contain no-repeat;
+}
+.navbar .btn, .navbar .btn-header, .navbar a { color: var(--rt-title) !important; }
+
+/* setting labels (ESP3D .comment boxes) and the bordered setting groups */
+.comment { background: #0f1820 !important; color: var(--rt-info) !important; border-radius: 3px !important; }
+.bordered { border-color: #2c3a46 !important; background: var(--rt-lcd) !important; }
+
+/* panels = the black LCD windows of the REVTURN screen */
+.panel, .panel-dashboard, .card, .modal-container, .menu, .dropdown .menu, .terminal, .table, .empty {
+  background: var(--rt-lcd) !important; color: var(--rt-text) !important; border: 1px solid #223 !important; border-radius: 6px !important;
+}
+.panel-header, .panel-title, .modal-header, .modal_title, .extra-control-header, .jog-position-sub-header, .title {
+  color: var(--rt-title) !important; letter-spacing: .04em; font-weight: 700 !important;
+}
+.panel-body, .panel-body-dashboard, .modal-body, .modal-footer { background: transparent !important; }
+.divider, .fieldset-top-separator, .fieldset-bottom-separator { border-color: #2c3a46 !important; }
+.table td, .table th, .file-line { border-color: #1c2630 !important; }
+.table tr:hover, .file-line:hover, .menu .menu-item > a:hover { background: #0f1820 !important; }
+.terminal, .terminal * { font-family: Consolas, "Courier New", monospace !important; color: #b8c4c8 !important; }
+.jog-position-value { color: var(--rt-info) !important; font-family: Consolas, monospace !important; }
+
+/* buttons = REVTURN soft keys; primary = the lit soft key; success/warning/error = go/hold/stop */
+.btn { background: #1d2a36 !important; color: #dfe8ff !important; border: 1px solid #36506a !important; border-radius: 4px !important; }
+.btn:hover, .btn:focus { background: #26384a !important; color: #fff !important; }
+.btn.btn-primary, .btn.active, .btn:active { background: var(--rt-soft-on) !important; border-color: var(--rt-soft-on) !important; color: #fff !important; }
+.btn.btn-success { background: var(--rt-go) !important; border-color: var(--rt-go) !important; color: #fff !important; }
+.btn.btn-warning { background: var(--rt-hold) !important; border-color: var(--rt-hold) !important; color: #111 !important; }
+.btn.btn-error { background: var(--rt-stop) !important; border-color: var(--rt-stop) !important; color: #fff !important; }
+.btn.btn-clear, .btn.btn-link, .flatbtn { background: transparent !important; border-color: transparent !important; color: var(--rt-info) !important; }
+
+/* inputs */
+.form-input, .form-select, select, textarea, input[type=text], input[type=number], input[type=password] {
+  background: #000 !important; color: var(--rt-text) !important; border: 1px solid #36506a !important;
+}
+.form-input:focus, .form-select:focus { border-color: var(--rt-soft-on) !important; box-shadow: 0 0 0 .1rem rgba(58,99,212,.35) !important; }
+.form-switch .form-icon, .form-checkbox .form-icon { background: #1d2a36 !important; border-color: #36506a !important; }
+.form-switch input:checked + .form-icon, .form-checkbox input:checked + .form-icon { background: var(--rt-soft-on) !important; border-color: var(--rt-soft-on) !important; }
+.input-group-addon, .input-group-btn { background: #1d2a36 !important; color: var(--rt-dim) !important; border-color: #36506a !important; }
+
+/* status badges, toasts, tooltips, progress */
+.badge-label, .s-circle { background: var(--rt-soft) !important; color: #fff !important; }
+.toast { background: #10202e !important; color: var(--rt-text) !important; border-left: 4px solid var(--rt-soft-on) !important; }
+.toast.toast-error { border-left-color: var(--rt-stop) !important; }
+.toast.toast-success { border-left-color: var(--rt-go) !important; }
+.tooltip::after { background: #0f1820 !important; color: var(--rt-text) !important; }
+.progress { background: #1c2630 !important; }
+.progress::-webkit-progress-value { background: var(--rt-soft-on) !important; }
+.modal-overlay { background: rgba(5,8,10,.82) !important; }
+
+/* credit line */
+#app::after {
+  content: "REVTURN by JMSCNC \2022  grblHAL (Terje Io) + ESP3D-WebUI (Luc Lebosse), GPL v3";
+  display: block; text-align: center; color: var(--rt-dim); font-size: 11px; padding: 6px 0 10px;
+}
