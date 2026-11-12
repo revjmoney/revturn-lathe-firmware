@@ -24,6 +24,12 @@ chuck (C) in synced moves, nonstop spindle speed and direction changes, and a C-
 
 [![REVTURN first run with all 3 motors linked](https://img.youtube.com/vi/2WnQ3KHcuW8/hqdefault.jpg)](https://www.youtube.com/watch?v=2WnQ3KHcuW8)
 
+**[🎵 REVTURN plays Ode to Joy (YouTube Short)](https://youtube.com/shorts/jGg3c3h4D9M)**: I tuned the lathe to play music like a MIDI
+instrument. A stepper hums at its step rate, so the feed rate is the note: the X motor plays the melody and the spindle holds the
+bass, with a dolphin-squeal intro. Footage, G-code and charts: [revturn-ode-to-joy-video](https://github.com/revjmoney/revturn-ode-to-joy-video).
+
+[![REVTURN plays Ode to Joy](https://img.youtube.com/vi/jGg3c3h4D9M/hqdefault.jpg)](https://youtube.com/shorts/jGg3c3h4D9M)
+
 ☕ Like where this is going? **[Buy me a coffee](https://buymeacoffee.com/revjmoney)** and help keep the junk-bin lathe turning.
 
 > **⚠ This is a junk-bin build, not a kit.** The lathe is 3D printed and put together from whatever was laying
