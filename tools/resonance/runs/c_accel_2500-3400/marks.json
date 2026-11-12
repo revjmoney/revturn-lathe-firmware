@@ -1,0 +1,76 @@
+{
+ "orig": 240,
+ "phoneStartS": 0.194,
+ "levels": [
+  {
+   "accel": 2500,
+   "set": "ok",
+   "before": 4.028,
+   "after": 26.48,
+   "result": "ok in 19.4 s"
+  },
+  {
+   "accel": 2600,
+   "set": "ok",
+   "before": 26.591,
+   "after": 48.892,
+   "result": "ok in 19.3 s"
+  },
+  {
+   "accel": 2700,
+   "set": "ok",
+   "before": 49.108,
+   "after": 71.361,
+   "result": "ok in 19.2 s"
+  },
+  {
+   "accel": 2800,
+   "set": "ok",
+   "before": 71.575,
+   "after": 93.681,
+   "result": "ok in 19.1 s"
+  },
+  {
+   "accel": 2900,
+   "set": "ok",
+   "before": 93.794,
+   "after": 115.844,
+   "result": "ok in 19.0 s"
+  },
+  {
+   "accel": 3000,
+   "set": "ok",
+   "before": 115.952,
+   "after": 138.056,
+   "result": "ok in 19.1 s"
+  },
+  {
+   "accel": 3100,
+   "set": "ok",
+   "before": 138.273,
+   "after": 160.198,
+   "result": "ok in 18.9 s"
+  },
+  {
+   "accel": 3200,
+   "set": "ok",
+   "before": 160.306,
+   "after": 182.235,
+   "result": "ok in 18.9 s"
+  },
+  {
+   "accel": 3300,
+   "set": "ok",
+   "before": 182.344,
+   "after": 204.368,
+   "result": "ok in 19.0 s"
+  },
+  {
+   "accel": 3400,
+   "set": "ok",
+   "before": 204.477,
+   "after": 226.255,
+   "result": "ok in 18.8 s"
+  }
+ ]
+}

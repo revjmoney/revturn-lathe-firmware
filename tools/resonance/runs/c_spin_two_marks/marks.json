@@ -1,0 +1,13 @@
+{
+ "orig": 3000,
+ "phoneStartS": null,
+ "levels": [
+  {
+   "accel": 1,
+   "set": "ok",
+   "before": 8.231,
+   "after": 136.763,
+   "result": "ok in 125.5 s"
+  }
+ ]
+}

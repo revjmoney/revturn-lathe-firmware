@@ -1,0 +1,34 @@
+{
+ "orig": 240,
+ "phoneStartS": 0.35,
+ "levels": [
+  {
+   "accel": 50,
+   "set": "ok",
+   "before": 8.327,
+   "after": 38.307,
+   "result": "ok in 27.0 s"
+  },
+  {
+   "accel": 100,
+   "set": "kept",
+   "before": 42.857,
+   "after": 61.699,
+   "result": "ok in 15.8 s"
+  },
+  {
+   "accel": 150,
+   "set": "kept",
+   "before": 66.342,
+   "after": 81.899,
+   "result": "ok in 12.5 s"
+  },
+  {
+   "accel": 200,
+   "set": "kept",
+   "before": 85.824,
+   "after": 100.14,
+   "result": "ok in 11.3 s"
+  }
+ ]
+}

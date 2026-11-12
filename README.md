@@ -100,8 +100,8 @@ serial terminal. Axis values are in mm and degrees (grblHAL's native units); the
 | `$102` | 1932 | Z steps/mm at **32x** microstepping (Rev 2026-11-11, to cut the Z buzz at cutting feeds; 966 at 16x was **measured**: 0.99 in per commanded inch on calipers); belt to an 8 mm T8 screw |
 | `$103` | 13.333 | C steps/deg: C driver at **8x** microstepping (26.667 at 16x, measured: one commanded turn = exactly one chuck turn); 20T to 120T belt |
 | `$110` / `$112` | 635 / 558.8 | X / Z max rate, mm/min: X **25 in/min**, Z **22 in/min** (Rev, 2026-11-11: the phone resonance sweep showed Z shaking violently at 25 ipm, about 1900 motor rpm, likely near stalling; 14 to 22 ipm is Z's smooth band). Caps feeds, rapids and jogs |
-| `$113` | 99000 | C max rate, deg/min = **275 rpm** chuck (rpm x 360) |
-| `$120` / `$122` / `$123` | 50 / 12 / 240 | X / Z accel (mm/s²), C accel (deg/s², about 2.5 s to 100 rpm) |
+| `$113` | 108000 | C max rate, deg/min = **300 rpm** chuck (rpm x 360); tested 2026-11-12, see [`docs/chuck-c-axis-and-rpm-tests.md`](docs/chuck-c-axis-and-rpm-tests.md) |
+| `$120` / `$122` / `$123` | 50 / 12 / 3000 | X / Z accel (mm/s²), C accel (deg/s²: 0.2 s to 100 rpm; swept 240 to 3400 with no lost steps, 2026-11-12) |
 | `$30` | 275 | Max spindle rpm (the screen's slider tops out here; the stepper spindle is also capped by `$113`) |
 | `$538` | 1 | Rotary wrap for C: `G91 G28 C0` goes the short way to the stored G28 angle and resets the C count (no unwinding hundreds of turns). The screen stores G28 on ZERO C and ends every program with it |
 | `$340` | 10 | Spindle at-speed tolerance %: g-code waits for the stepper spindle to reach speed |
