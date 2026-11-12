@@ -75,6 +75,25 @@ a, .text-primary { color: var(--rt-info) !important; }
 .progress::-webkit-progress-value { background: var(--rt-soft-on) !important; }
 .modal-overlay { background: rgba(5,8,10,.82) !important; }
 
+/* POWERED BY box (Rev 2026-11-12): all the original grblHAL / ESP3D branding moved into one box at the right of
+   the header, mostly icons. The logos are the WebUI's own artwork (extract-logos.mjs), filled in by make-theme.mjs. */
+.navbar .navbar-brand { display: none !important; }                       /* the grblHAL mark at the left */
+svg.esp3dlogo { display: none !important; }                               /* ESP3D badge on the Interface tab */
+ul.tab .tab-item:first-child a > svg { display: none !important; }        /* grblHAL mark on the Features tab */
+.navbar .navbar-section:last-child { align-items: center; }
+.navbar .navbar-section:last-child::before {
+  content: "POWERED BY:"; display: inline-flex; align-items: center; height: 34px; padding: 0 8px 0 10px;
+  margin-left: 12px; border: 1px solid #36506a; border-right: 0; border-radius: 6px 0 0 6px;
+  background: #0b1218; color: var(--rt-dim); font-size: 10px; font-weight: 700; letter-spacing: .08em;
+}
+.navbar .navbar-section:last-child::after {
+  content: "Terje Io  /  Luc Lebosse  /  GPL v3"; display: inline-flex; align-items: center; height: 34px;
+  padding: 0 10px 0 108px; margin-right: 8px; border: 1px solid #36506a; border-left: 0; border-radius: 0 6px 6px 0;
+  background: url("@@GRBL@@") 6px center / auto 28px no-repeat, url("@@ESP@@") 58px center / auto 26px no-repeat, #0b1218;
+  color: var(--rt-dim); font-size: 9px; white-space: nowrap;
+}
+@media (max-width: 760px) { .navbar .navbar-section:last-child::after { content: ""; padding-right: 2px; } }
+
 /* credit line */
 #app::after {
   content: "REVTURN by JMSCNC \2022  grblHAL (Terje Io) + ESP3D-WebUI (Luc Lebosse), GPL v3";

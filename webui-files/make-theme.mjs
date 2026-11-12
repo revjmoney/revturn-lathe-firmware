@@ -6,8 +6,10 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 const here = (p) => new URL(p, import.meta.url);
 const logo = readFileSync(process.argv[2] ?? here('../screen/src/brand/header-64.png'));
-const css = readFileSync(here('./theme-revturn.src.css'), 'utf8').replaceAll('@@LOGO@@', `data:image/png;base64,${logo.toString('base64')}`);
-if (css.includes('@@LOGO@@')) throw new Error('logo placeholder left in the CSS');
+const css = readFileSync(here('./theme-revturn.src.css'), 'utf8').replaceAll('@@LOGO@@', `data:image/png;base64,${logo.toString('base64')}`)
+  .replaceAll('@@GRBL@@', `data:image/svg+xml;base64,${readFileSync(here('./logo-grblhal.svg')).toString('base64')}`)
+  .replaceAll('@@ESP@@', `data:image/svg+xml;base64,${readFileSync(here('./logo-esp3d.svg')).toString('base64')}`);
+if (/@@[A-Z]+@@/.test(css)) throw new Error('logo placeholder left in the CSS');
 // the lathe serves a .gz file as a raw download (application/gzip, no Content-Encoding), so the WebUI would
 // inject compressed bytes as CSS: ship it as plain text named theme-revturn (the WebUI accepts theme-<name>)
 writeFileSync(here('./webui/theme-revturn'), css);
