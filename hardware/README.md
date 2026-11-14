@@ -144,6 +144,7 @@ spindle 5 in above the plywood base, 1.68 in above the top plate), adjusts +/- 4
 | `tool_post_holder_quarter_inch_solid` | Solid holder for 1/4 in square tools only: snug channel, tool sticks out 8 mm, clamp screws 14 and 27 mm behind the tip |
 | `tool_post_holder_boring` | 10.2 mm bore along the tool direction: 3/8 in / 10 mm boring bar or drill chuck shank |
 | `tool_post_v_shim_round_bits` | V strip for round bits 1/8 to 3/8 in (all reach centre within the height travel) |
+| `tool_post_holder_10mm_round` | 10.25 mm slot for a 10 mm round bar ground into a tool. No height tab: it slides about 6.6 mm (1/4 in) each way on the dovetail, locked by the 2 x M4 bolt slots. 2 x M4 clamp screws on top into inserts. Source: [`source/build_tool_post_holder_10mm_round.py`](source/build_tool_post_holder_10mm_round.py) |
 
 - **Swivel:** one M4 x 20 down the column into an insert in the plate's hole at the swivel centre clamps it; two
   M4 x 12 side screws (tapped into the ring) drop into the notches for positive 0 / 45 / 90 stops toward the chuck.
