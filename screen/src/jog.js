@@ -7,11 +7,14 @@
 export const JOG_CANCEL = 0x85;
 export const CONT_DISTANCE = { X: 2, Z: 10, C: 3600 };
 
-export function jogLine({ axis, dir, step, feed }) {
+// xWith (Z jogs only): an X step to ride along, the taper correction (Rev 2026-11-15). Diameter in G7.
+export function jogLine({ axis, dir, step, feed, xWith = 0 }) {
   if (!(axis in CONT_DISTANCE)) throw new Error(`Cannot jog axis ${axis}`);
   if (!(feed > 0)) throw new Error('Jog feed must be more than 0');
   const dist = step === 'cont' ? CONT_DISTANCE[axis] : step;
   const d = String(Number((dir < 0 ? -dist : dist).toFixed(6)));
   const units = axis === 'C' ? '' : ' G20';
-  return `$J=G91${units} ${axis}${d} F${Number(feed)}`;
+  const xw = axis === 'Z' ? Number(Number(xWith).toFixed(6)) : 0;
+  const xPart = xw ? `X${xw} ` : '';
+  return `$J=G91${units} ${xPart}${axis}${d} F${Number(feed)}`;
 }

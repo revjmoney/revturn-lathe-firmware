@@ -64,7 +64,7 @@ bass, with a dolphin-squeal intro. Footage, G-code and charts: [revturn-ode-to-j
 - **Insert key** starts the spindle at the spindle slider speed and stops it again, on any screen.
 - X/Z jog slider down to **0.1 in/min** in 0.1 steps for slow, fine moves.
 - **Taper correction** (SET UP): if straight cuts come out tapered, enter the diameter change per inch and every
-  cycle, program and MDI line shifts X as Z moves, so the cut comes out straight. Off by default.
+  cycle, program, MDI line and Z jog shifts X as Z moves, so the cut comes out straight. Off by default.
 - HOLD and STOP always on screen. Any connected screen can HOLD or STOP the machine; extra screens show the
   live machine in VIEW ONLY.
 - Feed / spindle / rapid overrides, DRY RUN (air cut, spindle off), alarm explain + RESET / UNLOCK.

@@ -192,3 +192,47 @@ describe('taper on MDI lines', () => {
     } finally { app.stop(); }
   });
 });
+
+describe('taper on Z jogs (Rev 2026-11-15: "yes add it to the z jog too")', () => {
+  let root, link, app;
+  const $ = (s) => root.querySelector(s);
+  const down = (j) => $(`[data-jog="${j}"]`).dispatchEvent(new Event('pointerdown', { bubbles: true }));
+  beforeEach(() => {
+    document.body.innerHTML = '<div id="app"></div>';
+    root = document.getElementById('app');
+    link = new FakeLink();
+    app = startApp(root, link, { host: 'lathe', fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({ files: [] }), text: async () => '{}' }) });
+    registerJog(app);
+    link.setConnected(true);
+    link.status('<Idle|MPos:0,0,0,0>');
+    app.state.setup.taper = { enabled: true, perInch: 0.02, zRef: 0 };
+    app.showMode('JOG');
+    link.lines.length = 0;
+  });
+  afterEach(() => app.stop());
+  const pickStep = (s) => $(`[data-step="${s}"]`).dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+  it('a Z- step jog toward the chuck carries the matching X step', () => {
+    pickStep('0.1'); down('Z-');
+    expect(link.lines.at(-1)).toMatch(/^\$J=G91 G20 X0\.002 Z-0\.1 F/);
+  });
+  it('a Z+ step jog takes X back the other way', () => {
+    pickStep('0.1'); down('Z+');
+    expect(link.lines.at(-1)).toMatch(/^\$J=G91 G20 X-0\.002 Z0\.1 F/);
+  });
+  it('X jogs, C jogs and taper off stay plain', () => {
+    pickStep('0.1'); down('X+');
+    expect(link.lines.at(-1)).toMatch(/^\$J=G91 G20 X0\.1 F/);
+    app.state.setup.taper.enabled = false; down('Z-');
+    expect(link.lines.at(-1)).toMatch(/^\$J=G91 G20 Z-0\.1 F/);
+  });
+  it('radius mode (G8) uses half the diameter step', () => {
+    link.line('[GC:G0 G54 G17 G8 G20 G90 G94]');
+    pickStep('0.1'); down('Z-');
+    expect(link.lines.at(-1)).toMatch(/^\$J=G91 G20 X0\.001 Z-0\.1 F/);
+  });
+  it('CONT jog segments carry X too', () => {
+    pickStep('cont'); down('Z-');
+    expect(link.lines.at(-1)).toMatch(/^\$J=G91 G20 X0\.\d+ Z-0\.\d+ F/);
+  });
+});

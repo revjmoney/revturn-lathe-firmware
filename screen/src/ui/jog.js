@@ -82,7 +82,7 @@ export function registerJog(app) {
         const dist = axis === 'C' ? cStep(step) : Number(step);
         const over = overtravel(axis, dir, dist);
         if (over) { app.msg(`${over}: jog refused (${limitText(axis, dir)})`); return; }
-        app.send(jogLine({ axis, dir, step: dist, feed }));
+        app.send(jogLine({ axis, dir, step: dist, feed, xWith: taperX(axis, dir, dist) }));
         return;
       }
       // CONT: short segments re-sent while held, so a dropped link stops the jog within ~1.5 segments.
@@ -90,7 +90,7 @@ export function registerJog(app) {
       const segFor = () => {
         const f = axis === 'C' ? feedC : feedXZ;
         const seg = Number(((f / 60) * SEGMENT_S).toFixed(6)); // 6 places: 0.1 ipm is 0.00025 in per segment
-        return { seg, line: jogLine({ axis, dir, step: seg, feed: f }) };
+        return { seg, line: jogLine({ axis, dir, step: seg, feed: f, xWith: taperX(axis, dir, seg) }) };
       };
       const first = segFor();
       stopTimer();
@@ -126,6 +126,14 @@ export function registerJog(app) {
     view.addEventListener('pointerleave', (e) => { if (e.target?.matches?.('[data-jog]')) stopJog(); }, true);
     for (const t of ['pointerup', 'pointercancel', 'blur']) window.addEventListener(t, stopJog);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') stopJog(); });
+  };
+
+  // Taper correction rides along on Z jogs (Rev 2026-11-15), same rule as transform.applyTaper: X = X - perInch * dZ.
+  // perInch is diameter per inch of Z; G8 (radius mode) takes half. zRef does not matter for a relative step.
+  const taperX = (axis, dir, dist) => {
+    const T = app.state.setup.taper, k = Number(T?.perInch);
+    if (axis !== 'Z' || !T?.enabled || !Number.isFinite(k) || !k) return 0;
+    return -k * dir * dist * (app.state.gc?.diameter === false ? 0.5 : 1);
   };
 
   // Stroke limits apply to jogging too (T1 work frame, X as diameter). C is unlimited.
