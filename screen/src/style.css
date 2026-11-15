@@ -305,3 +305,51 @@ button:disabled { opacity: .35; cursor: not-allowed; }
 .abouttext .coffee { display: inline-block; background: var(--title); color: #05080a; font: bold 18px Consolas, monospace; letter-spacing: 2px;
   padding: 10px 22px; border-radius: 6px; border: 2px solid #05080a; box-shadow: 3px 3px 0 #000; text-decoration: none; margin: 4px 0 10px; }
 .abouttext .coffee:hover { background: #fff3b0; }
+
+/* MUSIC (songs from MIDI + drum machine) */
+.music .mfile { display: inline-block; background: #1d2a36; border: 1px solid #36506a; border-radius: 4px; padding: 8px 12px; color: #dfe8ff; cursor: pointer; }
+.music .mfile input { display: none; }
+.music .minfo { color: var(--dim); margin: 8px 0; font-size: 13px; }
+.music .mtracks { border-collapse: collapse; width: 100%; font-size: 13px; margin: 6px 0; }
+.music .mtracks th, .music .mtracks td { text-align: left; padding: 3px 6px; border-bottom: 1px solid #223; }
+.music .mtracks select { background: #000; color: #dfe8ff; border: 1px solid #36506a; }
+.music .mopts { display: flex; flex-wrap: wrap; gap: 6px 12px; margin: 8px 0; }
+.music .mopt { font-size: 12px; color: var(--dim); display: flex; align-items: center; gap: 4px; }
+.music .mopt input[type=number] { width: 64px; background: #000; color: #dfe8ff; border: 1px solid #36506a; padding: 3px; }
+.music .mbtn { background: #1d2a36; color: #dfe8ff; border: 1px solid #36506a; border-radius: 4px; padding: 6px 10px; }
+.music .mgrid { border-collapse: collapse; margin: 6px 0; font-size: 12px; }
+.music .mgrid th { color: var(--dim); font-weight: normal; padding: 2px 4px; text-align: left; white-space: nowrap; }
+.music .mgrid td { padding: 2px; }
+.music .mstep { width: 26px; height: 26px; border-radius: 3px; background: #142028; border: 1px solid #2c4254; }
+.music .mgrid td:nth-child(4n+2) .mstep { border-color: #4a6a86; }
+.music .mstep.on { background: #ffb347; border-color: #ffb347; }
+.music .dim { color: var(--dim); font-size: 10px; }
+@media (max-width: 600px) { .music .mstep { width: 18px; height: 22px; } }
+
+/* PROG: flash gauge + DOS DIR /W list (Rev 2026-11-12) */
+.flashgauge { display: flex; align-items: center; gap: 10px; margin: 2px 0 8px; }
+.flashgauge .fg-text { display: flex; flex-direction: column; font: 12px Consolas, monospace; color: var(--dim); line-height: 1.35; }
+.flashgauge .fg-text b { color: var(--title); letter-spacing: .08em; }
+.dirw { display: grid; grid-template-columns: repeat(auto-fill, minmax(38ch, 1fr)); gap: 1px 10px; font: 14px Consolas, "Courier New", monospace;
+  background: #000; border: 1px solid #223; padding: 6px 8px; max-height: 46vh; overflow: auto; }
+.dirw .dw { color: #c8d2d8; padding: 2px 4px; white-space: nowrap; overflow: hidden; cursor: pointer; border-radius: 2px; }
+.dirw .dw:hover { background: #10202e; color: #fff; }
+.dirw .dw.sel { background: #c8d2d8; color: #000; }
+.dirw .dw { display: flex; justify-content: space-between; gap: 1ch; }
+.dirw .dwn { overflow: hidden; text-overflow: ellipsis; }
+.dirw .dws { color: #7f9aa8; flex: none; margin-left: auto; }
+.dirw .dwd { color: #6f8796; flex: none; width: 8ch; text-align: right; }
+.dirw .dw.sel .dws, .dirw .dw.sel .dwd { color: #234; }
+.dirfoot { margin: 4px 0 0; font: 12px Consolas, "Courier New", monospace; color: var(--dim); background: transparent; }
+
+/* toolpath viewer toolbar (Rev 2026-11-12: zoom and views like gSender) */
+.vbar { position: absolute; top: 6px; right: 6px; display: flex; gap: 3px; z-index: 2; }
+.vbar button { background: rgba(20,32,42,.85); color: #cfe0ff; border: 1px solid #36506a; border-radius: 3px; font: 11px Consolas, monospace; padding: 3px 7px; cursor: pointer; }
+.vbar button:hover { background: #26384a; }
+.vbar button.on { background: #2f6b4a; color: #fff; border-color: #4fbf8a; }
+/* SET UP: taper correction on/off (Rev 2026-11-15), a big touch target on the same line as its words */
+.form label.chk { display: flex; flex-direction: row; align-items: center; gap: 8px; align-self: end; min-height: 34px; }
+.form label.chk input { width: 24px; height: 24px; margin: 0; accent-color: #ffb000; }
+/* Rev 2026-11-15: tap the X / Z number to type its value */
+.drotop .readout [data-dro="x"], .drotop .readout [data-dro="z"] { cursor: pointer; }
+.drotop .readout [data-dro="x"]:active, .drotop .readout [data-dro="z"]:active { color: var(--spindle); }

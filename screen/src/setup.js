@@ -10,12 +10,16 @@ export const N_TOOLS = 8;
 // enabled: the LIMITS switch. Off by default (Rev 2026-11-09); old setup.json files without it load as off.
 const DEFAULT_LIMITS = { enabled: false, xMax: 3, xMin: -0.05, zMax: 3, zMin: -4 }; // Z max leaves room for dry-run lifts
 
+// Taper correction (Rev 2026-11-15): see transform.applyTaper. Off until Rev turns it on and enters his number.
+const DEFAULT_TAPER = { enabled: false, perInch: 0, zRef: 0 };
+
 const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 
 export function defaultSetup() {
   return {
     tools: Array.from({ length: N_TOOLS }, (_, i) => ({ n: i + 1, desc: i === 0 ? 'T1 reference' : '', dx: 0, dz: 0 })),
     limits: { ...DEFAULT_LIMITS },
+    taper: { ...DEFAULT_TAPER },
     activeTool: 1,
   };
 }
@@ -30,7 +34,9 @@ export function normalizeSetup(raw) {
   const l = raw?.limits ?? {};
   const limits = { enabled: l.enabled === true, xMax: num(l.xMax, d.limits.xMax), xMin: num(l.xMin, d.limits.xMin), zMax: num(l.zMax, d.limits.zMax), zMin: num(l.zMin, d.limits.zMin) };
   const at = Number.isInteger(raw?.activeTool) && raw.activeTool >= 1 && raw.activeTool <= N_TOOLS ? raw.activeTool : 1;
-  return { tools, limits, activeTool: at };
+  const t = raw?.taper ?? {};
+  const taper = { enabled: t.enabled === true, perInch: num(t.perInch, 0), zRef: num(t.zRef, 0) };
+  return { tools, limits, taper, activeTool: at };
 }
 
 export const toolById = (setup, n) => setup.tools.find((t) => t.n === n) ?? setup.tools[0];

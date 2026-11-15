@@ -12,6 +12,7 @@ const INFO = -1; // the MACHINE INFO page in the group list
 
 export function registerSettings(app, { webuiUrl = '/webui/#/settings/machine' } = {}) {
   const groups = new Map(), meta = new Map(), values = new Map(), descr = new Map();
+  app.settingValues = values; // live $$ values (id -> string), read by MUSIC for steps/mm, max rates and accel
   const edits = new Map(); // id -> typed / picked value (string), not saved yet
   let axes = 'XYZC', info = [], infoOpen = false, group = null, search = '', view = null, loaded = false, timer = null;
 

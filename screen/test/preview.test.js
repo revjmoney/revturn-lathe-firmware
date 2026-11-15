@@ -12,12 +12,14 @@ describe('toolpath', () => {
     ]);
   });
 
-  it('ignores C, comments, and lines without X or Z', () => {
+  // Rev 2026-11-12: C is read now (END and 3D views); comments and lines with no X, Z or C are still skipped
+  it('reads C, skips comments and lines without X, Z or C', () => {
     const pts = toolpath(['G7 G18 G20 G90 G94', '(STEP 1: face)', 'M3 S30', 'G0 X1', 'G0 Z0', 'G1 Z-0.5 C4320 F1.5', 'G0 C120']);
     expect(pts).toEqual([
       { x: 1, z: 0, rapid: true },
       { x: 1, z: 0, rapid: true },
-      { x: 1, z: -0.5, rapid: false },
+      { x: 1, z: -0.5, c: 4320, rapid: false },
+      { x: 1, z: -0.5, c: 120, rapid: true },
     ]);
   });
 });

@@ -9,6 +9,7 @@ import { registerCycles } from './ui/cycles.js';
 import { registerProgram } from './ui/program.js';
 import { registerSetup } from './ui/setup.js';
 import { registerSettings } from './ui/settings.js';
+import { registerMusic } from './ui/music.js';
 import { WEBUI_URL } from './app.js';
 
 const params = new URLSearchParams(location.search);
@@ -20,5 +21,6 @@ registerCycles(app);
 registerProgram(app);
 registerSetup(app);
 registerSettings(app, { webuiUrl: WEBUI_URL });
+registerMusic(app);
 window.revturn = app;
 link.connect();

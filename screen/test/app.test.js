@@ -145,7 +145,9 @@ describe('review fixes', () => {
     link.lines.length = 0;
     link.line("GrblHAL 1.1f ['$' or '$HELP' for help]");
     link.status('<Idle|MPos:0,0,0,0>'); // sent at the first Idle status (grblHAL refuses g-code while in Alarm)
-    expect(link.lines).toEqual(['G7 G20', '$G']);
+    expect(link.lines.slice(0, 2)).toEqual(['G7 G20', '$G']);
+    expect(link.lines[2]).toMatch(/^\$RTC=\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/); // and sets the lathe's clock (file dates)
+    expect(link.lines).toHaveLength(3);
   });
 
   it('STOP and HOLD say so when nothing could be sent', () => {
@@ -201,9 +203,46 @@ describe('review fixes', () => {
     expect(link.lines).not.toContain('G7 G20'); // once, not on every status
   });
 
-  it('marks a silent connection dead after 1.5 s without status and reconnects', () => {
+  // Rev 2026-11-12: "connection lost when i try to play moonlight sonata". An upload or file listing makes the lathe
+  // go quiet for 2-3 s (no status while its flash is busy). Silence while a transfer is in flight is not a dead link.
+  it('waits out a slow file transfer instead of calling the link dead', async () => {
+    link.reconnectNow = vi.fn();
+    let finish;
+    app.stop();
+    root.innerHTML = '';
+    const quick = async () => ({ ok: true, json: async () => ({ files: [] }), text: async () => '{}' });
+    app = startApp(root, link, { host: 'lathe', fetchImpl: (url, o) => (o?.method === 'POST' ? new Promise((r) => { finish = r; }) : quick()) });
+    link.setConnected(true);
+    await vi.advanceTimersByTimeAsync(0); // the requests sent on connect finish
+    link.status('<Idle|MPos:0,0,0,0>');
+    const busy = app.fetchImpl('http://lathe/files', { method: 'POST' });
+    vi.advanceTimersByTime(3000);
+    expect($('[data-conn]').textContent).toBe('CONNECTED');
+    expect(link.reconnectNow).not.toHaveBeenCalled();
+    finish({ ok: true }); await busy;
+    vi.advanceTimersByTime(1000); // the 1.5 s clock starts again when the transfer ends
+    expect($('[data-conn]').textContent).toBe('CONNECTED');
+    vi.advanceTimersByTime(1000);
+    expect($('[data-conn]').textContent).toBe('NO DATA');
+  });
+
+  it('still calls the link dead if a transfer hangs for more than 10 s', async () => {
+    link.reconnectNow = vi.fn();
+    app.stop();
+    root.innerHTML = '';
+    app = startApp(root, link, { host: 'lathe', fetchImpl: (url, o) => (o?.method === 'POST' ? new Promise(() => {}) : Promise.resolve({ ok: true, json: async () => ({ files: [] }), text: async () => '{}' })) });
+    link.setConnected(true);
+    await vi.advanceTimersByTimeAsync(0);
+    link.status('<Idle|MPos:0,0,0,0>');
+    app.fetchImpl('http://lathe/files', { method: 'POST' });
+    vi.advanceTimersByTime(10600);
+    expect($('[data-conn]').textContent).toBe('NO DATA');
+  });
+
+  it('marks a silent connection dead after 1.5 s without status and reconnects', async () => {
     link.reconnectNow = vi.fn();
     link.setConnected(true);
+    await vi.advanceTimersByTimeAsync(0); // the requests sent on connect finish (a request in flight extends the wait)
     link.status('<Idle|MPos:0,0,0,0>');
     vi.advanceTimersByTime(1000);
     expect($('[data-conn]').textContent).toBe('CONNECTED');

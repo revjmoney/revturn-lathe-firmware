@@ -21,7 +21,7 @@ export function registerSetup(app) {
       <label>Z off<input name="t${t.n}dz" inputmode="decimal" value="${f4(t.dz)}"${t.n === 1 ? ' readonly' : ''}></label>
       ${t.n === 1 ? '<span class="soon">reference tool</span>' : `<button class="btn" data-touch="${t.n}:X" data-needs-link>TOUCH X</button><button class="btn" data-touch="${t.n}:Z" data-needs-link>TOUCH Z</button>`}
     </div>`).join('');
-    const L = s.limits;
+    const L = s.limits, T = s.taper;
     view = h(`<div>
       <div class="lbl2">TOOLS: tap a T to make it the active tool (lit). Offsets from T1, inches: tip reads T1 position minus offset</div>
       <div class="ttable">${rows}</div>
@@ -31,6 +31,12 @@ export function registerSetup(app) {
         <label>X min (dia)<input name="xMin" inputmode="decimal" value="${L.xMin}"></label>
         <label>Z max<input name="zMax" inputmode="decimal" value="${L.zMax}"></label>
         <label>Z min (toward chuck)<input name="zMin" inputmode="decimal" value="${L.zMin}"></label>
+      </div>
+      <div class="lbl2">TAPER CORRECTION: if a straight cut comes out tapered, turn one, measure the diameter at two spots and enter (tailstock-end dia minus chuck-end dia) / distance between them. Plus = fatter toward the tailstock. Every cycle and program then walks X to cancel it.</div>
+      <div class="form">
+        <label class="chk"><input type="checkbox" name="taperOn"${T.enabled ? ' checked' : ''}> Taper correction ON</label>
+        <label>Dia per inch of Z (in)<input name="taperPerInch" inputmode="decimal" value="${T.perInch}"></label>
+        <label>No correction at Z<input name="taperZRef" inputmode="decimal" value="${T.zRef}"></label>
       </div>
       <div class="picker" style="margin-top:8px"><button class="go" data-setup-save data-needs-link>SAVE SET UP</button></div>
     </div>`);
@@ -55,8 +61,13 @@ export function registerSetup(app) {
       const raw = {
         tools: app.state.setup.tools.map((t) => ({ n: t.n, desc: read(`t${t.n}desc`), dx: Number(read(`t${t.n}dx`)), dz: Number(read(`t${t.n}dz`)) })),
         limits: { enabled: app.state.setup.limits.enabled === true, xMax: Number(read('xMax')), xMin: Number(read('xMin')), zMax: Number(read('zMax')), zMin: Number(read('zMin')) },
+        taper: { enabled: view.querySelector('[name="taperOn"]').checked, perInch: Number(read('taperPerInch')), zRef: Number(read('taperZRef')) },
         activeTool: app.state.setup.activeTool,
       };
+      if (!Number.isFinite(raw.taper.perInch) || !Number.isFinite(raw.taper.zRef) || read('taperPerInch') === '' || read('taperZRef') === '') {
+        app.msg('Taper correction: dia per inch and Z must be numbers'); return;
+      }
+      if (Math.abs(raw.taper.perInch) > 0.1) { app.msg('Taper correction over 0.1 in per inch: that is a setup problem, not a taper'); return; }
       for (const t of raw.tools.slice(1)) {
         if (!Number.isFinite(t.dx) || read(`t${t.n}dx`) === '') { app.msg(`T${t.n} X offset must be a number`); return; }
         if (!Number.isFinite(t.dz) || read(`t${t.n}dz`) === '') { app.msg(`T${t.n} Z offset must be a number`); return; }
@@ -68,7 +79,7 @@ export function registerSetup(app) {
       app.state.setup = normalizeSetup(raw);
       app.renderDro();
       await app.persistSetup();
-      app.msg('Set up saved to the lathe');
+      app.msg(app.state.setup.taper.enabled ? `Set up saved to the lathe: taper correction ON (${app.state.setup.taper.perInch} dia per inch)` : 'Set up saved to the lathe');
     });
   };
 

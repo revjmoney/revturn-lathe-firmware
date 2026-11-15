@@ -109,3 +109,12 @@ Within 2 rpm everywhere except 300 (4 rpm, where the dot is a faint streak). Bef
 exposure (15 real fps) and a second green mark on the chuck, about half the speeds read exactly 2x or 0.5x. Data:
 `tools/resonance/runs/c_spin_one_dot_manual_exposure/` (and `c_spin_two_marks/` for the before). Videos of every
 run are kept privately.
+
+## 2026-11-15: pushing toward 500 rpm
+
+- C driver to **4x** microstepping (`$103=6.667`) and the C driver supply at **36 V**, so 500 rpm needs about
+  20,000 steps/s instead of 40,000.
+- Test program: `spin_500.nc` (100, 300, 350, 400, 450, 500 rpm as whole-turn C moves with pauses, then `M3 S500`).
+  Every C speed reached its programmed feed. The chuck **flops out above about 475 rpm** (2,850 motor rpm at 6:1),
+  most likely the motor running out of torque at that speed, possibly the TB6600 step rate (about 19 kHz there).
+- Settled: `$30=450`, `$113=162000` (450 rpm), `$123=3000` unchanged.

@@ -6,7 +6,8 @@
 // Copyright 2026 JMSCNC / Rev. J. Money (jmscnc.com).
 import { parseStatus } from './status.js';
 import { droView } from './dro.js';
-import { Keypad, zeroLine } from './keypad.js';
+import { Keypad, zeroLine, setLine } from './keypad.js';
+import { taperMdiLine, modesAfter } from './transform.js';
 import { describe as explain } from './errors.js';
 import { defaultSetup, loadSetup, saveSetup, toolById, N_TOOLS } from './setup.js';
 import { mountMdi } from './ui/mdi.js';
@@ -24,9 +25,9 @@ export const WEBUI_URL = '/webui/#/settings/machine'; // opens straight on the g
 // Rev 2026-11-10: JOG became TOOL (the jog pad is beside the DRO on every screen anyway)
 // Rev 2026-11-11: TOOL merged into SET UP (tool select is the T button on each tool row)
 // Rev 2026-11-11: SETTINGS = every grblHAL setting in the REVTURN look (the stock WebUI is a link inside it)
-export const MODES = ['DRO', 'PROG', 'EDIT', 'SET UP', 'RUN', 'CYCLES', 'SETTINGS'];
+export const MODES = ['DRO', 'PROG', 'EDIT', 'SET UP', 'RUN', 'CYCLES', 'MUSIC', 'SETTINGS'];
 // Rev 2026-11-11: these modes open in the full window like EDIT and BACKPLOT (value = window title)
-export const WINDOWED = { PROG: 'PROGRAMS', 'SET UP': 'SET UP', CYCLES: 'CYCLES', RUN: 'RUN', SETTINGS: 'SETTINGS' };
+export const WINDOWED = { PROG: 'PROGRAMS', 'SET UP': 'SET UP', CYCLES: 'CYCLES', MUSIC: 'MUSIC', RUN: 'RUN', SETTINGS: 'SETTINGS' };
 const RT = { STATUS: 0x3f, HOLD: 0x21, RESUME: 0x7e, RESET: 0x18 };
 // grbl realtime override bytes (Fanuc-style panel)
 export const OV = {
@@ -36,6 +37,11 @@ export const OV = {
 };
 const KEYS = ['+/-', 'CLEAR', 'X', '7', '8', '9', 'Z', '4', '5', '6', 'C', '1', '2', '3', '.'];
 const STATUS_TIMEOUT_MS = 1500;
+// Rev 2026-11-12: with ~40 files on the flash an upload or listing keeps the lathe silent for 2-3 s. While a request
+// to the lathe is in flight the watchdog allows this long, and its 1.5 s clock restarts when the request ends.
+const IO_TIMEOUT_MS = 10000;
+// local time as 2026-11-12T09:30:05 for grblHAL's $RTC= (its file dates come from this clock)
+export const localIso = (d = new Date()) => { const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`; };
 const VIEW_POLL_MS = 450; // a VIEW ONLY screen asks for status itself after this long without a broadcast
 const SPIN_THROTTLE_MS = 200; // live spindle slider: at most one speed change per 200 ms
 
@@ -104,20 +110,37 @@ const mmss = (ms) => { const s = Math.max(0, Math.round(ms / 1000)); return `${M
 
 export function startApp(root, link, opts = {}) {
   const host = opts.host ?? location.host;
-  const fetchImpl = opts.fetchImpl ?? ((...a) => fetch(...a));
+  const rawFetch = opts.fetchImpl ?? ((...a) => fetch(...a));
+  const io = { busy: 0, since: 0 };
+  const fetchImpl = async (...a) => {
+    if (!io.busy++) io.since = Date.now();
+    try { return await rawFetch(...a); } finally { if (!--io.busy) state.lastStatus = Math.max(state.lastStatus, Date.now()); }
+  };
   root.innerHTML = '';
   root.appendChild(h(LAYOUT));
   const $ = (s) => root.querySelector(s);
   const $$ = (s) => root.querySelectorAll(s);
 
   const state = {
+    gc: { absolute: true, diameter: true, mm: false, motion: 0 }, // controller modes, from $G and MDI lines
     machine: null, maxRpm: null, mode: 'DRO', units: 'in', reportUnits: 'mm', live: false, lastStatus: 0,
     setup: defaultSetup(), setupError: false, dryRun: false, myId: null, activeId: null, run: null,
   };
   const modes = new Map();
   const holdHooks = [];
   const keypad = new Keypad();
-  const mdi = mountMdi($('.mdi'), { send: (l) => (locked() ? false : link.sendLine(l)) });
+  // MDI lines get the taper correction too (Rev 2026-11-15); the console shows what was really sent when it differs
+  const mdiSend = (l) => {
+    if (locked()) return false;
+    const mmReport = state.reportUnits === 'mm', w = state.machine?.wpos;
+    const toMach = (v) => (state.gc.mm === mmReport ? v : state.gc.mm ? v * 25.4 : v / 25.4);
+    const out = w && state.machine?.state === 'Idle' ? taperMdiLine(l, state.setup.taper, state.gc, { x: toMach(w[0]), z: toMach(w[2]) }) : l;
+    if (!link.sendLine(out)) return false;
+    state.gc = modesAfter(out, state.gc);
+    if (out !== l) queueMicrotask(() => mdi.note(`(taper corrected) ${out}`));
+    return true;
+  };
+  const mdi = mountMdi($('.mdi'), { send: mdiSend });
   const runLog = createRunLog({
     fetchLines: async (name) => (await readFile(host, name, app.fetchImpl)).split('\n'),
     emit: (text, kind) => (kind === 'note' ? mdi.note(text) : mdi.run(text)),
@@ -181,7 +204,7 @@ export function startApp(root, link, opts = {}) {
   const tipPosition = () => {
     if (!state.machine) return null;
     const t = activeTool();
-    return { x: t1Reading('X') - t.dx, z: t1Reading('Z') - t.dz };
+    return { x: t1Reading('X') - t.dx, z: t1Reading('Z') - t.dz, c: state.machine.wpos?.[3] ?? 0 }; // C: for the END and 3D views
   };
   const backplot = createBackplot();
   const drawBackplot = () => {
@@ -324,6 +347,17 @@ export function startApp(root, link, opts = {}) {
     spinSent = spinRpm(); spinLast = Date.now();
   });
   on(root, '[data-spin-stop]', 'click', () => { if (spinAllowed()) { send('M5'); spinSent = null; } });
+  // Rev 2026-11-15: the Insert key starts and stops the spindle at the slider speed, on any screen. It presses the
+  // same buttons, so the same gates apply (no link, a running program, another screen in control). Ignored while
+  // typing in a box; the speed sliders do not count as typing. Key repeat is ignored: one press, one toggle.
+  root.ownerDocument.addEventListener('keydown', (e) => {
+    if (e.key !== 'Insert' || e.repeat || e.ctrlKey || e.altKey || e.metaKey || e.shiftKey || !root.isConnected) return;
+    const t = e.target;
+    if (t?.closest?.('textarea, select, [contenteditable="true"]') || (t?.closest?.('input') && t.type !== 'range')) return;
+    e.preventDefault();
+    const b = $(spinTurning() ? '[data-spin-stop]' : '[data-spin-toggle]');
+    if (b && !b.disabled) b.click();
+  });
   // Live speed while dragging: first move goes at once, then at most every SPIN_THROTTLE_MS, always ending on the
   // final value. While stopped, the slider only sets the speed for the next ON.
   let spinSent = null, spinLast = 0, spinTimer = null;
@@ -380,6 +414,20 @@ export function startApp(root, link, opts = {}) {
       if (st !== 'Idle') { msg(`Set only when Idle (machine is ${st ?? 'not known yet'})`); return; }
       send(action.line); mdi.note(`> ${action.line}`);
     }
+  });
+  // Rev 2026-11-15: tap the big X or Z number to type what it should read (X = the measured DIAMETER at the active
+  // tool tip). Same G10 L20 line as ABS SET on the keypad, same Idle-only rule; the tool offset is included.
+  on(root, '.drotop .readout [data-dro="x"], .drotop .readout [data-dro="z"]', 'click', (e, b) => {
+    const axis = b.dataset.dro.toUpperCase();
+    const st = state.machine?.state;
+    if (!inControl()) { msg(state.live ? 'VIEW ONLY: another screen is in control' : 'Not connected'); return; }
+    if (st !== 'Idle') { msg(`Set only when Idle (machine is ${st ?? 'not known yet'})`); return; }
+    const raw = window.prompt(axis === 'X' ? `T${state.setup.activeTool}: measured DIAMETER at the tool tip (in)` : `T${state.setup.activeTool}: Z of the tool tip (in, face = 0)`, b.textContent.trim());
+    if (raw === null || raw.trim() === '') return;
+    const v = Number(raw);
+    if (!Number.isFinite(v)) { msg(`${axis} not set: "${raw}" is not a number`); return; }
+    const line = setLine(axis, v + offsetFor(axis));
+    if (send(line)) { mdi.note(`> ${line}`); msg(`${axis} set to ${v}${axis === 'X' ? ' (diameter)' : ''}`); }
   });
   on(root, '[data-ov]', 'click', (e, b) => { if (state.live) link.sendRealtime(OV[b.dataset.ov]); });
   on(root, '[data-unlock]', 'click', () => { if (send('$X')) msg('Unlocked: check zeros before running'); });
@@ -442,6 +490,8 @@ export function startApp(root, link, opts = {}) {
     if (state.needModes && s.state === 'Idle' && inControl()) {
       state.needModes = false;
       link.sendLine('G7 G20'); link.sendLine('$G');
+      // Rev 2026-11-12: files show their save date, so set the lathe's clock from this device (local time)
+      link.sendLine(`$RTC=${localIso()}`);
     }
     renderDro();
     backplot.add(tipPosition()); // traced in every mode: jogs, MDI and programs
@@ -483,6 +533,7 @@ export function startApp(root, link, opts = {}) {
     const gc = /^\[GC:(.*)\]$/.exec(line);
     if (gc) {
       const words = gc[1].split(/\s+/);
+      state.gc = modesAfter(words.filter((w) => /^G\d/.test(w)).join(' '), state.gc);
       const dia = words.includes('G7') ? true : words.includes('G8') ? false : null;
       if (dia !== null) {
         state.machine = { ...(state.machine ?? parseStatus('<Idle|MPos:0,0,0,0>')), diameter: dia };
@@ -523,7 +574,8 @@ export function startApp(root, link, opts = {}) {
     // the screen in control polls; others see the broadcast, and ask themselves once it goes quiet
     // (an owner that never polls, like a stock WebUI tab, left VIEW ONLY screens reconnecting every 3.6 s)
     if (!viewOnly() || Date.now() - state.lastStatus > VIEW_POLL_MS) link.sendRealtime(RT.STATUS);
-    if (state.live && Date.now() - state.lastStatus > STATUS_TIMEOUT_MS) {
+    const quiet = Date.now() - state.lastStatus;
+    if (state.live && quiet > STATUS_TIMEOUT_MS && (!io.busy || Date.now() - io.since > IO_TIMEOUT_MS)) {
       setConnected(false, 'NO DATA');
       msg('No reply from the lathe: reconnecting');
       link.reconnectNow?.();

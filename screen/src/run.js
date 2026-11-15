@@ -5,12 +5,13 @@
 // generate -> tool offset (+ tool-change stops) -> stroke limits -> dry run (+ limits again).
 import { CYCLES, compileProgram, toolChange } from './program.js';
 import { HEADER } from './cycles/common.js';
-import { applyTool, dryRun, checkLimits, dryRunLift, returnC } from './transform.js';
+import { applyTool, applyTaper, dryRun, checkLimits, dryRunLift, returnC } from './transform.js';
 import { toolById } from './setup.js';
 
 const WAIT_RPM = 'Waiting for machine settings ($30): try again in a moment';
 
 function finish(lines, ctx, homeC = true, tipDz = 0) {
+  lines = applyTaper(lines, ctx.setup?.taper); // after tool offsets: the error follows the carriage (T1 frame) Z
   if (homeC) lines = returnC(lines, ctx.c0 ?? 0, ctx.cWrap === true); // C back to 0 at the end (not after INDEX)
   const limits = ctx.setup?.limits;
   const over = checkLimits(lines, limits);

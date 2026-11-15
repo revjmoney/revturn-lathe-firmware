@@ -5,7 +5,8 @@
 import { compileProgram, safeName, sanitizeImport, checkProgram } from '../program.js';
 import { prepareProgram } from '../run.js';
 import { toolById } from '../setup.js';
-import { listFiles, uploadFile, deleteFile, readFile, runLine } from '../files.js';
+import { listFiles, listFilesInfo, uploadFile, deleteFile, readFile, runLine } from '../files.js';
+import { gaugeHtml, dirwHtml, dirFooterHtml } from './dirw.js';
 import { FIELDS, NAMES, renderForm, readForm, defaults, ctxFrom } from './cycles.js';
 import { toolpath } from './preview.js';
 import { h, on, esc } from './dom.js';
@@ -26,18 +27,30 @@ export function registerProgram(app) {
       <div class="form" style="margin-bottom:8px"><label>New program name<input name="progName" placeholder="part name"></label></div>
       <div class="picker"><button data-prog-new>NEW</button><button data-prog-open>OPEN</button><button data-prog-delete>DELETE</button><button data-prog-import>IMPORT</button></div>
       <input type="file" data-import-file accept=".nc,.tap,.ngc,.gcode,.txt" hidden>
-      <div class="list" data-prog-list><div class="soon">Loading programs…</div></div></div>`);
+      <div data-flash></div>
+      <div class="list" data-prog-list><div class="soon">Loading programs…</div></div>
+      <div data-prog-foot></div></div>`);
     panel.appendChild(view);
     const refresh = async () => {
       const box = view.querySelector('[data-prog-list]');
       try {
-        const names = (await listFiles(app.host, app.fetchImpl)).filter((n) => n.endsWith('.json')).map((n) => n.slice(0, -5));
-        box.innerHTML = names.length ? names.map((n) => `<div class="item${n === prog.selected ? ' sel' : ''}" data-prog-item="${esc(n)}"><span>${esc(n)}</span></div>`).join('') : '<div class="soon">No programs saved yet</div>';
+        // Rev 2026-11-12: flash gauge + DOS DIR /W style list (narrow columns, twice as many across)
+        const info = await listFilesInfo(app.host, app.fetchImpl);
+        const NOT_PROGRAMS = ['preferences.json', 'setup.json']; // the WebUI's settings and the tool table
+        const progs = info.files.filter((f) => f.name.endsWith('.json') && !NOT_PROGRAMS.includes(f.name));
+        const names = progs.map((f) => f.name.slice(0, -5)).sort((a, b) => a.localeCompare(b));
+        const progBytes = info.files.filter((f) => names.includes(f.name.replace(/\.(json|nc)$/, ''))).reduce((t, f) => t + f.bytes, 0);
+        view.querySelector('[data-flash]').innerHTML = gaugeHtml(info);
+        const sizeOf = (n) => info.files.filter((f) => f.name === `${n}.json` || f.name === `${n}.nc`).reduce((t, f) => t + f.bytes, 0);
+        const timeOf = (n) => info.files.filter((f) => f.name === `${n}.json` || f.name === `${n}.nc`).map((f) => f.time).filter(Boolean).sort().pop() ?? null;
+        box.innerHTML = dirwHtml(names.map((n) => ({ name: n, bytes: sizeOf(n), time: timeOf(n) })), prog.selected);
+        view.querySelector('[data-prog-foot]').innerHTML = names.length ? dirFooterHtml(names.length, progBytes, Math.max(0, info.total - info.used)) : '';
       } catch (err) { box.innerHTML = `<div class="soon">${esc(err.message)}</div>`; }
     };
     on(view, '[data-prog-item]', 'click', (e, el) => {
       prog.selected = el.dataset.progItem;
       for (const it of view.querySelectorAll('[data-prog-item]')) it.classList.toggle('sel', it === el);
+      app.msg(`${prog.selected}: OPEN to edit, or DELETE`);
     });
     on(view, '[data-prog-import]', 'click', () => view.querySelector('[data-import-file]').click());
     view.querySelector('[data-import-file]').addEventListener('change', async (e) => {

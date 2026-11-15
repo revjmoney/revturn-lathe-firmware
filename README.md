@@ -60,6 +60,11 @@ bass, with a dolphin-squeal intro. Footage, G-code and charts: [revturn-ode-to-j
 **Machine-like controls everywhere**
 - DRO in diameter (X) and Z, with C shown as **RPM in spindle mode** or **degrees in C-axis mode**.
 - ZERO X / Z / C / ALL on every screen (Idle only), ABS SET / INC SET keypad, MDI console.
+- **Tap the X or Z number** on the DRO and type the measured diameter (or Z) to set it, tool offset included.
+- **Insert key** starts the spindle at the spindle slider speed and stops it again, on any screen.
+- X/Z jog slider down to **0.1 in/min** in 0.1 steps for slow, fine moves.
+- **Taper correction** (SET UP): if straight cuts come out tapered, enter the diameter change per inch and every
+  cycle, program and MDI line shifts X as Z moves, so the cut comes out straight. Off by default.
 - HOLD and STOP always on screen. Any connected screen can HOLD or STOP the machine; extra screens show the
   live machine in VIEW ONLY.
 - Feed / spindle / rapid overrides, DRY RUN (air cut, spindle off), alarm explain + RESET / UNLOCK.
@@ -98,16 +103,16 @@ serial terminal. Axis values are in mm and degrees (grblHAL's native units); the
 | `$32` | 2 | Lathe mode (X in diameter, G7/G8) |
 | `$100` | 800 | X steps/mm: **measured** (X-2 on diameter moved 0.5 in real at 400, so doubled); 8 mm T8 screw |
 | `$102` | 1932 | Z steps/mm at **32x** microstepping (Rev 2026-11-11, to cut the Z buzz at cutting feeds; 966 at 16x was **measured**: 0.99 in per commanded inch on calipers); belt to an 8 mm T8 screw |
-| `$103` | 13.333 | C steps/deg: C driver at **8x** microstepping (26.667 at 16x, measured: one commanded turn = exactly one chuck turn); 20T to 120T belt |
+| `$103` | 6.667 | C steps/deg: C driver at **4x** microstepping (Rev 2026-11-15, for more rpm; 26.667 at 16x was measured: one commanded turn = exactly one chuck turn); 20T to 120T belt; C driver on 36 V |
 | `$110` / `$112` | 635 / 558.8 | X / Z max rate, mm/min: X **25 in/min**, Z **22 in/min** (Rev, 2026-11-11: the phone resonance sweep showed Z shaking violently at 25 ipm, about 1900 motor rpm, likely near stalling; 14 to 22 ipm is Z's smooth band). Caps feeds, rapids and jogs |
-| `$113` | 108000 | C max rate, deg/min = **300 rpm** chuck (rpm x 360); tested 2026-11-12, see [`docs/chuck-c-axis-and-rpm-tests.md`](docs/chuck-c-axis-and-rpm-tests.md) |
+| `$113` | 162000 | C max rate, deg/min = **450 rpm** chuck (rpm x 360); 2026-11-15 the chuck flops out above about 475 rpm, so capped at 450; earlier tests 2026-11-12, see [`docs/chuck-c-axis-and-rpm-tests.md`](docs/chuck-c-axis-and-rpm-tests.md) |
 | `$120` / `$122` / `$123` | 50 / 12 / 3000 | X / Z accel (mm/s²), C accel (deg/s²: 0.2 s to 100 rpm; swept 240 to 3400 with no lost steps, 2026-11-12) |
-| `$30` | 275 | Max spindle rpm (the screen's slider tops out here; the stepper spindle is also capped by `$113`) |
+| `$30` | 450 | Max spindle rpm (the screen's slider tops out here; the stepper spindle is also capped by `$113`) |
 | `$538` | 1 | Rotary wrap for C: `G91 G28 C0` goes the short way to the stored G28 angle and resets the C count (no unwinding hundreds of turns). The screen stores G28 on ZERO C and ends every program with it |
 | `$340` | 10 | Spindle at-speed tolerance %: g-code waits for the stepper spindle to reach speed |
 | `$395` | 1 | Default spindle = the stepper spindle (spindle 1 is the PWM output for a live tool) |
 | `$677` | 7 | Stepper spindle options |
-| `$2` / `$3` / `$5` | 5 / 1 / 7 | Step invert (TB6600 common anode), direction invert, limit invert |
+| `$2` / `$3` / `$5` | 5 / 0 / 7 | Step invert (TB6600 common anode), direction invert (X un-inverted 2026-11-15 so X- moves toward the part center), limit invert |
 | `$6` / `$14` | 1 / 64 | Left over from the probe and E-stop inputs, which are **removed for now**: on GPIO 14/13 they made the WiFi crawl (300 to 1500 ms ping). They come back on other pins once they are wired, with a WiFi re-test |
 | `$320` | revturn | Hostname: the screen is also at `http://revturn.local/lathe.html` (mDNS) |
 

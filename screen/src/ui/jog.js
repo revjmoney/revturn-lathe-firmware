@@ -29,7 +29,7 @@ export function registerJog(app) {
     // X/Z jog speed slider, styled like the spindle bar right under it (Rev 2026-11-09). Max follows $110/$112.
     ctlHost.appendChild(h(`<div class="xzbar">
       <span class="lbl3">X/Z JOG</span>
-      <input type="range" data-xz-feed min="1" max="50" step="1" value="${feedXZ}" aria-label="X and Z jog speed">
+      <input type="range" data-xz-feed min="0.1" max="50" step="0.1" value="${feedXZ}" aria-label="X and Z jog speed">
       <span data-xz-show>${feedXZ} IPM</span>
     </div>`));
     const xzShow = ctlHost.querySelector('[data-xz-show]');
@@ -89,7 +89,7 @@ export function registerJog(app) {
       // Each segment is rebuilt from the current feed, so moving the X/Z slider changes speed live.
       const segFor = () => {
         const f = axis === 'C' ? feedC : feedXZ;
-        const seg = Number(((f / 60) * SEGMENT_S).toFixed(4));
+        const seg = Number(((f / 60) * SEGMENT_S).toFixed(6)); // 6 places: 0.1 ipm is 0.00025 in per segment
         return { seg, line: jogLine({ axis, dir, step: seg, feed: f }) };
       };
       const first = segFor();

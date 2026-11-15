@@ -29,6 +29,14 @@ describe('files', () => {
     await expect(uploadFile('lathe', 'x.nc', 'x', fetchImpl)).rejects.toThrow('x.nc');
   });
 
+  // Rev 2026-11-12: with ~40 files on the flash a listing takes the lathe 2.3-2.9 s with no status reports. The
+  // upload reply already carries the listing, so a second listing is only asked for when it does not.
+  it('checks the upload against the listing in the upload reply: one request only', async () => {
+    const fetchImpl = vi.fn(async () => listing(['x.nc', 'y.nc']));
+    await uploadFile('lathe', 'x.nc', 'G0 X1\n', fetchImpl);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
   it('lists file names', async () => {
     expect(await listFiles('lathe', async () => listing(['a.json', 'a.nc']))).toEqual(['a.json', 'a.nc']);
   });
