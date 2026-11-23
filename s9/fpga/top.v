@@ -1,12 +1,12 @@
 `timescale 1ns / 1ps
 // [orphan] REVTURN on the S9: slot 0 info ("RVT1"), slot 1 the step generator (revturn_stepgen.v), slot 15 fans.
 // Outputs (3.3 V, buffer them to 5 V for the drivers): J6 = X step/dir, Z step/dir; J7 = C step/dir, W step/dir;
-// J8 pin 5 = enable. LED D5 = a segment is running.
+// enables (one per driver): X J8 pin 5, Z J8 pin 12, C J8 pin 15, W J2 pin 5. LED D5 = a segment is running.
 // by JMSCNC, makers of RotatoCAM. [Rev. J. Money - 2026] GPL-3.0-or-later. Built on Ardzy (by chryso, GPL-3.0).
 module top (
     output wire [3:0] step,
     output wire [3:0] dir,
-    output wire       enable,
+    output wire [3:0] enable,             // one per driver: X J8.5, Z J8.12, C J8.15, W J2.5
     input  wire [7:0] lathe_in,           // J9: limit X, limit Z, probe, e-stop; J1: hold, start, reset, limit W
     output wire       spindle_pwm,        // J8 pin 11
     output wire [3:0] leds,

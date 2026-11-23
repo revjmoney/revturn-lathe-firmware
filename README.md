@@ -125,7 +125,7 @@ go to 4x (6.667) or a 48 V driver like a DM542 for more.
 
 The same firmware also runs on an **Antminer S9 control board** with [Orphan](https://github.com/revjmoney/orphan):
 the grblHAL core as a Linux program and the step pulses from the S9's FPGA, with the same lathe screen at
-`http://revturn.local:8000/lathe.html`. Build, install and wiring (with a diagram): [s9/README.md](s9/README.md).
+`http://revturn-s9.local:8000/lathe.html`. Build, install and wiring (with a diagram): [s9/README.md](s9/README.md).
 Bench tested on an S9, not yet run on the real lathe.
 
 ## Branches

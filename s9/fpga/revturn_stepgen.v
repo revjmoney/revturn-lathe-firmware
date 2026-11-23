@@ -18,9 +18,9 @@
 //   1 STATUS  [0] busy (a segment is running) [1] underrun (FIFO ran dry while running) [2] FIFO empty [3] full
 //             [27:16] FIFO words
 //   2 PULSE   [15:0] step pulse width (clocks), [31:16] dir setup (clocks before the first tick after a dir change)
-//   3 INVERT  [3:0] step polarity, [11:8] dir polarity, [16] enable polarity
+//   3 INVERT  [3:0] step polarity, [11:8] dir polarity, [19:16] enable polarity per axis
 //   4 FIFO    write: push a word
-//   5 ENABLE  [0] drivers enabled (the enable pin; grblHAL's $4 polarity via INVERT[16])
+//   5 ENABLE  [3:0] driver enabled per axis (one enable pin each; grblHAL's $4 polarity via INVERT[19:16])
 //   6 MODE    [0] 1 = tick-stream mode (below), 0 = segment mode (above)
 // Tick-stream mode: grblHAL's own step interrupt runs on the ARM; every interrupt tick becomes one FIFO word
 //   {step_bits[31:28], dir_bits[27:24], delay[23:0]}: wait <delay> step-timer counts (10 MHz, 0.1 us) after the
@@ -53,7 +53,7 @@ module revturn_stepgen #(parameter [3:0] SLOT = 4'd1) (
     output reg  [31:0] bus_rdata = 32'd0,
     output wire [3:0]  step,
     output wire [3:0]  dir,
-    output wire        enable,
+    output wire [3:0]  enable,
     input  wire [7:0]  inputs,                // raw input pins (see the input bit list above)
     output reg         spindle_pwm = 1'b0,
     output wire        led_busy
@@ -67,11 +67,12 @@ module revturn_stepgen #(parameter [3:0] SLOT = 4'd1) (
     wire wr = we_r && sel;
 
     // ---- settings
-    reg        run = 1'b0, en = 1'b0;
+    reg        run = 1'b0;
+    reg [3:0]  en = 4'd0;
     reg [15:0] pw = 16'd200;          // 2 us
     reg [15:0] dsetup = 16'd500;      // 5 us
     reg [3:0]  sinv = 4'd0, dinv = 4'd0;
-    reg        einv = 1'b0;
+    reg [3:0]  einv = 4'd0;
     reg        tick = 1'b0;           // tick-stream mode
     // inputs: 2-flop sync, debounce (a change must hold for the debounce time), invert
     reg [7:0]  in1 = 8'd0, in2 = 8'd0, inst = 8'd0, inlive = 8'd0, inchg = 8'd0, inact = 8'd0;
@@ -92,8 +93,8 @@ module revturn_stepgen #(parameter [3:0] SLOT = 4'd1) (
     always @(posedge clk) if (hw_trip) run <= 1'b0; else if (wr) begin
         if (idx == 10'd0) run <= wd[0] & ~wd[1];
         if (idx == 10'd2) begin pw <= wd[15:0]; dsetup <= wd[31:16]; end
-        if (idx == 10'd3) begin sinv <= wd[3:0]; dinv <= wd[11:8]; einv <= wd[16]; end
-        if (idx == 10'd5) en <= wd[0];
+        if (idx == 10'd3) begin sinv <= wd[3:0]; dinv <= wd[11:8]; einv <= wd[19:16]; end
+        if (idx == 10'd5) en <= wd[3:0];
         if (idx == 10'd6) tick <= wd[0];
     end
     always @(posedge clk) begin
@@ -278,8 +279,8 @@ module revturn_stepgen #(parameter [3:0] SLOT = 4'd1) (
             10'd0: bus_rdata <= {31'd0, run};
             10'd1: bus_rdata <= {4'd0, cnt, 12'd0, cnt == 12'd2048, cnt == 12'd0, under, busy};
             10'd2: bus_rdata <= {dsetup, pw};
-            10'd3: bus_rdata <= {15'd0, einv, 4'd0, dinv, 4'd0, sinv};
-            10'd5: bus_rdata <= {31'd0, en};
+            10'd3: bus_rdata <= {12'd0, einv, 4'd0, dinv, 4'd0, sinv};
+            10'd5: bus_rdata <= {28'd0, en};
             10'd6: bus_rdata <= {31'd0, tick};
             10'd16: bus_rdata <= {24'd0, inlive};
             10'd17: bus_rdata <= {16'd0, inact, inchg};
@@ -308,6 +309,6 @@ module revturn_stepgen #(parameter [3:0] SLOT = 4'd1) (
     end
     assign step = sinv ^ {pwc[3] != 0, pwc[2] != 0, pwc[1] != 0, pwc[0] != 0};
     assign dir = dinv ^ {dirs[3], nco_on ? nco_dir : dirs[2], dirs[1:0]};
-    assign enable = einv ^ en;
+    assign enable = einv ^ en;          // 4 pins: X, Z, C, W
     assign led_busy = busy;
 endmodule

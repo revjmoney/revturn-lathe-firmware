@@ -124,12 +124,31 @@ static pthread_cond_t pump_c = PTHREAD_COND_INITIALIZER;
 // a disable waits (input thread) until the queue is empty and the engine idle.
 static volatile bool disable_pending = false;
 static inline bool fpga_idle (void) { uint32_t st = rd(R_STATUS); return !(st & 1) && ((st >> 16) & 0xFFF) == 0; }
+static volatile uint32_t en_want = 0;      // FPGA enable bits grblHAL asked for: [0] X, [1] Z, [2] C, [3] W
+
+// One enable pin per driver. Turning a driver off waits until the FPGA queue has played out (grblHAL disables the
+// motors as soon as it has handed over the last steps), and C stays on while the spindle generator runs it.
+static void apply_enable (void)
+{
+    uint32_t want = en_want;
+    if(rd(R_NCO) & 1)
+        want |= 4;
+    uint32_t cur = rd(R_ENABLE) & 0xF;
+    if((cur & ~want) && !fpga_idle()) {
+        wr(R_ENABLE, cur | want);
+        disable_pending = true;
+    } else {
+        wr(R_ENABLE, want);
+        disable_pending = false;
+    }
+}
+
 static void stepperEnable (axes_signals_t enable, bool hold)
 {
     (void)hold;
-    if(enable.mask) { disable_pending = false; wr(R_ENABLE, 1); }
-    else if(fpga_idle()) wr(R_ENABLE, 0);
-    else disable_pending = true;
+    // W has no grblHAL axis yet: its driver follows "any axis on"
+    en_want = to_fpga(enable.mask) | (enable.mask ? 8u : 0u);
+    apply_enable();
 }
 
 static void stepperWakeUp (void)
@@ -252,7 +271,7 @@ static void *input_thread (void *arg)
     uint32_t last = rd(R_IN_LIVE);
     for(;;) {
         usleep(1000);
-        if(disable_pending && fpga_idle()) { disable_pending = false; wr(R_ENABLE, 0); }
+        if(disable_pending && fpga_idle()) apply_enable();
         uint32_t in = rd(R_IN_LIVE);
         uint32_t chg = (in ^ last) | (rd(R_IN_LATCH) & 0xFF);
         if(chg) {
@@ -304,10 +323,12 @@ static void cSpindleSetState (spindle_ptrs_t *spindle, spindle_state_t state, fl
             c_pos_at_start = (int32_t)rd(R_POS + 2);
         c_set_rate(rpm);
         wr(R_NCO, 1 | (state.ccw ? 2 : 0));
+        apply_enable();                                              // the C driver must be on while it spins
     } else if(c_state.on) {
         wr(R_NCO_INC, 0);                                            // ramp down, then hand C back to grblHAL
         for(int i = 0; i < 5000 && rd(R_NCO_CUR); i++) usleep(1000);
         wr(R_NCO, 0);
+        apply_enable();                                              // C off again if grblHAL has it off
         int32_t moved = (int32_t)rd(R_POS + 2) - c_pos_at_start;
         sys.position[3] += moved;                                    // fold the spindle's steps back into C
         wr(R_POS + 2, (uint32_t)sys.position[3]);
@@ -477,7 +498,7 @@ static void settings_changed (settings_t *s, settings_changed_flags_t changed)
     uint32_t dsu = (uint32_t)((s->steppers.pulse_delay_microseconds > 0.0f ? s->steppers.pulse_delay_microseconds : 2.0f) * 100.0f);
     wr(R_PULSE, (pw < 50 ? 50 : pw) | (dsu > 0xFFFF ? 0xFFFF : dsu) << 16);
     wr(R_INVERT, to_fpga(s->steppers.step_invert.mask) | to_fpga(s->steppers.dir_invert.mask) << 8 |
-                 (s->steppers.enable_invert.mask ? 1u << 16 : 0));
+                 (uint32_t)(to_fpga(s->steppers.enable_invert.mask) | (s->steppers.enable_invert.mask & 1 ? 8u : 0u)) << 16);   // W follows X's polarity
     // inputs: switches to GND with pull-ups -> active low, inverted here; grblHAL's invert masks flip them back
     uint32_t inv = 0xFF;
     if(s->limits.invert.x) inv ^= 1 << IN_LIM_X;

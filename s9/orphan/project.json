@@ -4,10 +4,10 @@
   "category": "Motors and motion",
   "branch": "lab toys",
   "level": "advanced",
-  "summary": "Rev's REVTURN lathe firmware (grblHAL) running on the S9: the grblHAL core as a Linux program, its step interrupt played back by the FPGA with 10 ns timing (2048-tick queue), plus hardware inputs with an instant e-stop / hard-limit stop, a probe position latch, spindle PWM and the C spindle stepper (ramped NCO for M3/M4). Serves the REVTURN lathe screen and answers as revturn.local. by JMSCNC, makers of RotatoCAM.",
+  "summary": "Rev's REVTURN lathe firmware (grblHAL) running on the S9: the grblHAL core as a Linux program, its step interrupt played back by the FPGA with 10 ns timing (2048-tick queue), plus hardware inputs with an instant e-stop / hard-limit stop, a probe position latch, spindle PWM and the C spindle stepper (ramped NCO for M3/M4). Serves the REVTURN lathe screen and answers as revturn-s9.local (and revturn.local when no other machine has it). by JMSCNC, makers of RotatoCAM.",
   "quickstart": [
-    "Load orphan_revturn. The screen opens on port 8000: http://revturn.local:8000/lathe.html",
-    "gSender / ioSender: connect by Network (Telnet) to revturn.local, port 23.",
+    "Load orphan_revturn. The screen opens on port 8000: http://revturn-s9.local:8000/lathe.html",
+    "gSender / ioSender: connect by Network (Telnet) to revturn-s9.local, port 23.",
     "Outputs (3.3 V, buffer to 5 V for the drivers): J6 = X step/dir + Z step/dir, J7 = C step/dir (W step/dir: not used yet), J8 pin 5 = enable. Wiring: s9/README.md in the REVTURN repo.",
     "Inputs (switch to GND): J9 = limit X, limit Z, probe, e-stop; J1 = feed hold, cycle start, reset, limit W.",
     "Settings are grblHAL's ($$), saved on the board. Bench tested, not yet run on the real lathe: test unloaded first."

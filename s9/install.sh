@@ -22,4 +22,4 @@ cp "$HERE/revturn_web.py" "$HERE/www/lathe.html.gz" "$DEST/s9/"
 [ -f "$DEST/blocks.py" ] || cp "$(ls /opt/ardzy/projects/*/blocks.py | head -1)" "$DEST/" 2>/dev/null || true
 
 echo "== done. Start (or restart) it:   ardzy load orphan_revturn"
-echo "   screen: http://revturn.local:8000/lathe.html    gSender/ioSender: Network (Telnet) revturn.local port 23"
+echo "   screen: http://revturn-s9.local:8000/lathe.html    gSender/ioSender: Network (Telnet) revturn-s9.local port 23"

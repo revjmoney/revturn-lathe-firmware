@@ -1,6 +1,6 @@
 # [orphan] REVTURN: inputs J9 (5 limit X, 11 limit Z, 12 probe, 15 e-stop) and J1 (5 hold, 11 start, 12 reset, 15 limit W),
 # with the FPGA pull-ups (switches to GND). Spindle 1 PWM on J8 pin 11.
-# Outputs: J6 X/Z, J7 C/W (pins 5 step, 11 dir, 12 step, 15 dir), J8 pin 5 enable. 3.3 V: buffer to 5 V.
+# Outputs: J6 X/Z, J7 C/W (pins 5 step, 11 dir, 12 step, 15 dir), enables: X J8 pin 5, Z J8 pin 12, C J8 pin 15, W J2 pin 5 (solder a header on J2). 3.3 V: buffer to 5 V.
 set_property -dict {PACKAGE_PIN U14 IOSTANDARD LVCMOS33} [get_ports {step[0]}]
 set_property -dict {PACKAGE_PIN U18 IOSTANDARD LVCMOS33} [get_ports {dir[0]}]
 set_property -dict {PACKAGE_PIN U19 IOSTANDARD LVCMOS33} [get_ports {step[1]}]
@@ -9,7 +9,10 @@ set_property -dict {PACKAGE_PIN T20 IOSTANDARD LVCMOS33} [get_ports {step[2]}]
 set_property -dict {PACKAGE_PIN V20 IOSTANDARD LVCMOS33} [get_ports {dir[2]}]
 set_property -dict {PACKAGE_PIN W20 IOSTANDARD LVCMOS33} [get_ports {step[3]}]
 set_property -dict {PACKAGE_PIN U20 IOSTANDARD LVCMOS33} [get_ports {dir[3]}]
-set_property -dict {PACKAGE_PIN Y18 IOSTANDARD LVCMOS33} [get_ports {enable}]
+set_property -dict {PACKAGE_PIN Y18 IOSTANDARD LVCMOS33} [get_ports {enable[0]}]
+set_property -dict {PACKAGE_PIN W16 IOSTANDARD LVCMOS33} [get_ports {enable[1]}]
+set_property -dict {PACKAGE_PIN Y19 IOSTANDARD LVCMOS33} [get_ports {enable[2]}]
+set_property -dict {PACKAGE_PIN R19 IOSTANDARD LVCMOS33} [get_ports {enable[3]}]
 set_property -dict {PACKAGE_PIN F16 IOSTANDARD LVCMOS33} [get_ports {leds[0]}]
 set_property -dict {PACKAGE_PIN L19 IOSTANDARD LVCMOS33} [get_ports {leds[1]}]
 set_property -dict {PACKAGE_PIN M19 IOSTANDARD LVCMOS33} [get_ports {leds[2]}]
