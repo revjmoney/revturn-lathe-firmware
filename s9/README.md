@@ -150,6 +150,9 @@ rating. If an axis moves the wrong way, flip its `$3` bit; if it steps on the wr
   file was uploaded with the same `/files` API from a script, not from the screen's upload button).
 - Name: answers revturn-s9.local, and gives revturn.local back when another machine announces it (simulated).
 - `$I`, `$$` (94 settings), `$RTC`, status reports.
+- Several senders at once: 20 `$F=` file runs through the screen's link while a second client sent about 7,000 `$G`
+  commands; every file run ended where it should and every `$G` got its own reply. (Each sender's lines enter
+  grblHAL whole and their `ok` / `error` replies go back only to that sender; status reports go to everyone.)
 
 ## Not done yet
 

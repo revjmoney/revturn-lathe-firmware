@@ -59,6 +59,22 @@ def safe_name(n):
     return n if NAME_RE.match(n) and n not in ('.', '..') else None
 
 
+def file_path(n, prefix=''):
+    """The full path of file n in FILES_DIR, or None if it would land anywhere else."""
+    root = os.path.realpath(FILES_DIR)
+    p = os.path.realpath(os.path.join(root, prefix + n))
+    return p if os.path.dirname(p) == root else None
+
+
+def boundary_of(ctype):
+    """The multipart boundary from a Content-Type header (plain string work, no regex)."""
+    for part in ctype.split(';'):
+        k, _, v = part.strip().partition('=')
+        if k.lower() == 'boundary' and v:
+            return v.strip().strip('"')
+    return None
+
+
 # ---------------------------------------------------------------- HTTP
 class Http(http.server.BaseHTTPRequestHandler):
     protocol_version = 'HTTP/1.1'
@@ -86,12 +102,15 @@ class Http(http.server.BaseHTTPRequestHandler):
         if u.path == '/files':
             if q.get('action') == 'delete':
                 n = safe_name(q.get('filename', ''))
-                if n and os.path.isfile(os.path.join(FILES_DIR, n)):
-                    os.remove(os.path.join(FILES_DIR, n))
+                p = file_path(n) if n else None
+                if p and os.path.isfile(p):
+                    os.remove(p)
             return self.send(200, listing())
         n = safe_name(u.path)
-        if n and os.path.isfile(os.path.join(FILES_DIR, n)):
-            return self.send(200, open(os.path.join(FILES_DIR, n), 'rb').read(), 'text/plain; charset=utf-8')
+        p = file_path(n) if n else None
+        if p and os.path.isfile(p):
+            with open(p, 'rb') as f:
+                return self.send(200, f.read(), 'text/plain; charset=utf-8')
         return self.send(404, {'status': 'not found'})
 
     def do_POST(self):
@@ -99,20 +118,22 @@ class Http(http.server.BaseHTTPRequestHandler):
         if u.path != '/files':
             return self.send(404, {'status': 'not found'})
         body = self.rfile.read(int(self.headers.get('Content-Length', 0) or 0))
-        m = re.search(r'boundary=("?)([^";]+)\1', self.headers.get('Content-Type', ''))
-        if not m:
+        b = boundary_of(self.headers.get('Content-Type', ''))
+        if not b:
             return self.send(400, {'status': 'no multipart boundary'})
-        for part in body.split(b'--' + m.group(2).encode()):
+        for part in body.split(b'--' + b.encode()):
             head, _, data = part.partition(b'\r\n\r\n')
             fm = re.search(rb'filename="([^"]*)"', head)
             if fm:
                 n = safe_name(fm.group(1).decode('utf-8', 'replace'))
-                if not n:
+                dest = file_path(n) if n else None
+                tmp = file_path(n, '.') if n else None
+                if not dest or not tmp:
                     return self.send(400, {'status': 'bad file name'})
-                tmp = os.path.join(FILES_DIR, '.' + n + '.part')
+                tmp += '.part'
                 with open(tmp, 'wb') as f:
                     f.write(data[:-2] if data.endswith(b'\r\n') else data)
-                os.replace(tmp, os.path.join(FILES_DIR, n))
+                os.replace(tmp, dest)
         return self.send(200, listing())
 
 
@@ -177,11 +198,15 @@ class Job:
 
     def __init__(self, client, name):
         self.client, self.name = client, name
-        self.lines = [l.strip() for l in open(os.path.join(FILES_DIR, name), encoding='utf-8', errors='replace')]
+        with open(file_path(name), encoding='utf-8', errors='replace') as f:
+            self.lines = [l.strip() for l in f]
         self.lines = [l for l in self.lines if l and not l.startswith(('%', ';'))]
         self.sent = 0
         self.acks = threading.Semaphore(1)
         self.stop = False
+
+    def start(self):
+        # started only after client.job points at it: the first line's ok must find the job, or the job waits forever
         threading.Thread(target=self.run, daemon=True).start()
 
     def pct(self):
@@ -263,9 +288,10 @@ def ws_client(sock):
                 m = re.match(rb'^\$F=/?(.+)$', s)
                 if m and safe_name(m.group(1).decode('utf-8', 'replace')):
                     n = safe_name(m.group(1).decode())
-                    if os.path.isfile(os.path.join(FILES_DIR, n)):
+                    if file_path(n) and os.path.isfile(file_path(n)):
                         c.send_ws(b'ok\r\n')
                         c.job = Job(c, n)
+                        c.job.start()
                     else:
                         c.send_ws(b'error:60\r\n')                 # file not found
                     continue

@@ -45,6 +45,7 @@
 #define SLOT         1
 #define F_TIMER      10000000u          // grblHAL step timer: 10 MHz (0.1 us), the FPGA's tick-mode unit
 #define FIFO_WORDS   2048
+#define LEAD_US      10000        // how far (time) the step "interrupt" may run ahead of the FPGA
 #define TELNET_PORT  23
 #define MAX_CLIENTS  4
 #define NVS_FILE     "/var/lib/revturn/settings.bin"
@@ -205,13 +206,20 @@ static void *pump_thread (void *arg)
         pthread_mutex_unlock(&pump_m);
         step_busy = true;
         while(pumping) {
-            uint32_t room = FIFO_WORDS - fifo_count();
-            if(room < 64) {                // keep at least the queue's last 64 words for the FPGA's fetch slack
+            // Run grblHAL's step interrupt at most LEAD_US ahead of the FPGA, like a real timer interrupt that is only a
+            // little early. Running the whole 2048-word queue ahead at slow feeds used up grblHAL's segment buffer
+            // (about 100 ms of motion) at once: if the main loop was a moment late refilling it, the "interrupt" found
+            // it empty, ended the cycle in the middle of a block and the stream hung (seen in $F= file runs).
+            uint32_t lead = (uint32_t)((uint64_t)F_TIMER * LEAD_US / 1000000u) / (cur_period ? cur_period : 1);
+            if(lead < 16) lead = 16;
+            if(lead > FIFO_WORDS - 64) lead = FIFO_WORDS - 64;
+            uint32_t queued = fifo_count();
+            if(queued + 8 > lead) {
                 struct timespec t = { 0, 200000 };
                 nanosleep(&t, NULL);
                 continue;
             }
-            for(uint32_t n = room - 48; n && pumping; n--) {
+            for(uint32_t n = lead - queued; n && pumping; n--) {
                 irq_disable();
                 uint32_t delay = cur_period;
                 tick_steps = 0;
@@ -352,19 +360,54 @@ static void cSpindleUpdateRPM (spindle_ptrs_t *spindle, float rpm)
 // ---------------------------------------------------------------- the TCP stream (port 23)
 static stream_rx_buffer_t rxbuf;
 static enqueue_realtime_command_ptr enqueue_realtime_command = protocol_enqueue_realtime_command;
-static int clients[MAX_CLIENTS];
+// Several senders can be connected at once (the screen, gSender, a telnet window). Each one's text is assembled into
+// whole lines before it goes into grblHAL's one input buffer (no spliced lines), and every line remembers who sent
+// it: its replies (ok / error / $ output) go back to that sender only. Status reports, alarms and the welcome
+// message go to everyone.
+typedef struct { int fd; uint32_t id; } conn_t;
+static conn_t clients[MAX_CLIENTS];
+static uint32_t next_conn_id = 1;
 static pthread_mutex_t cl_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t rx_lock = PTHREAD_MUTEX_INITIALIZER;
+#define OWNERS 1024                            // >= the most lines that fit in the 1024 byte input buffer
+static uint32_t owner[OWNERS];
+static volatile uint32_t own_head = 0, own_tail = 0;   // written under rx_lock (head) / by the main loop (tail)
+
+static void send_to (uint32_t id, const char *s, size_t n)
+{
+    for(int i = 0; i < MAX_CLIENTS; i++)
+        if(clients[i].fd >= 0 && clients[i].id == id && send(clients[i].fd, s, n, MSG_NOSIGNAL) < 0) {
+            shutdown(clients[i].fd, SHUT_RDWR);      // its thread sees the end and frees the slot
+        }
+}
+
+static void net_broadcast (const char *s, size_t n)
+{
+    pthread_mutex_lock(&cl_lock);
+    for(int i = 0; i < MAX_CLIENTS; i++)
+        if(clients[i].fd >= 0 && send(clients[i].fd, s, n, MSG_NOSIGNAL) < 0)
+            shutdown(clients[i].fd, SHUT_RDWR);
+    pthread_mutex_unlock(&cl_lock);
+}
 
 static void net_write (const char *s, size_t n)
 {
     pthread_mutex_lock(&cl_lock);
-    for(int i = 0; i < MAX_CLIENTS; i++)
-        if(clients[i] >= 0 && send(clients[i], s, n, MSG_NOSIGNAL) < 0) {
-            close(clients[i]);
-            clients[i] = -1;
-        }
+    if(strstr(s, "GrblHAL ") && n < 120 && memchr(s, '[', n))
+        own_tail = own_head;                         // the welcome after a reset: lines still waiting were dropped
+    uint32_t tail = own_tail;
+    bool pending = tail != own_head;
+    if(!pending || s[0] == '<' || !strncmp(s, "ALARM", 5)) {
+        pthread_mutex_unlock(&cl_lock);
+        net_broadcast(s, n);
+        return;
+    }
+    send_to(owner[tail], s, n);
+    if(!strncmp(s, "ok", 2) || !strncmp(s, "error:", 6))
+        own_tail = (tail + 1) % OWNERS;              // that line is answered
     pthread_mutex_unlock(&cl_lock);
 }
+static void streamWriteAll (const char *s) { net_broadcast(s, strlen(s)); }
 static void streamWrite (const char *s) { net_write(s, strlen(s)); }
 static void streamWriteN (const uint8_t *s, uint16_t len) { net_write((const char *)s, len); }
 static bool streamPutC (const uint8_t c) { net_write((const char *)&c, 1); return true; }
@@ -388,9 +431,10 @@ static int32_t streamGetC (void)
     rxbuf.tail = (tail + 1) & (RX_BUFFER_SIZE - 1);
     return c;
 }
-static void streamRxFlush (void) { rxbuf.tail = rxbuf.head; }
+static void streamRxFlush (void) { rxbuf.tail = rxbuf.head; own_tail = own_head; }   // a reset: no replies owed
 static void streamRxCancel (void)
 {
+    own_tail = own_head;
     rxbuf.data[rxbuf.head] = ASCII_CAN;
     rxbuf.tail = rxbuf.head;
     rxbuf.head = (rxbuf.tail + 1) & (RX_BUFFER_SIZE - 1);
@@ -404,25 +448,52 @@ static enqueue_realtime_command_ptr streamSetRtHandler (enqueue_realtime_command
     return prev;
 }
 
-static void rx_byte (uint8_t c)
+// one whole line from client <id> into grblHAL's input buffer (waits for room: TCP back-pressure for big senders)
+static void push_line (uint32_t id, const uint8_t *line, size_t n)
 {
-    if(enqueue_realtime_command(c)) return;                          // ?, !, ~, ctrl-x... handled at once
-    uint_fast16_t next = (rxbuf.head + 1) & (RX_BUFFER_SIZE - 1);
-    if(next == rxbuf.tail) { rxbuf.overflow = 1; return; }
-    rxbuf.data[rxbuf.head] = c;
-    rxbuf.head = next;
+    for(;;) {
+        pthread_mutex_lock(&rx_lock);
+        if(streamRxFree() >= n + 1 && (own_head + 1) % OWNERS != own_tail)
+            break;
+        pthread_mutex_unlock(&rx_lock);
+        usleep(1000);
+    }
+    owner[own_head] = id;                        // before the line is visible to the main loop
+    own_head = (own_head + 1) % OWNERS;
+    uint_fast16_t head = rxbuf.head;
+    for(size_t i = 0; i < n; i++) {
+        rxbuf.data[head] = line[i];
+        head = (head + 1) & (RX_BUFFER_SIZE - 1);
+    }
+    rxbuf.data[head] = '\n';
+    __atomic_store_n(&rxbuf.head, (head + 1) & (RX_BUFFER_SIZE - 1), __ATOMIC_RELEASE);
+    pthread_mutex_unlock(&rx_lock);
 }
 
 static void *client_thread (void *arg)
 {
-    int fd = (int)(intptr_t)arg;
-    uint8_t buf[512];
+    int slot = (int)(intptr_t)arg;
+    int fd = clients[slot].fd;
+    uint32_t id = clients[slot].id;
+    uint8_t buf[512], line[512];
+    size_t len = 0;
+    uint8_t last = 0;
     ssize_t n;
     while((n = recv(fd, buf, sizeof(buf), 0)) > 0)
-        for(ssize_t i = 0; i < n; i++)
-            rx_byte(buf[i]);
+        for(ssize_t i = 0; i < n; i++) {
+            uint8_t c = buf[i];
+            if(enqueue_realtime_command(c))          // ?, !, ~, ctrl-x... handled at once
+                continue;
+            if(c == '\r' || c == '\n') {
+                if(!(c == '\n' && last == '\r' && len == 0))   // CR LF = one line
+                    push_line(id, line, len);
+                len = 0;
+            } else if(len < sizeof(line) - 1)
+                line[len++] = c;                     // longer lines are cut; grblHAL reports its own overflow
+            last = c;
+        }
     pthread_mutex_lock(&cl_lock);
-    for(int i = 0; i < MAX_CLIENTS; i++) if(clients[i] == fd) clients[i] = -1;
+    clients[slot].fd = -1;
     pthread_mutex_unlock(&cl_lock);
     close(fd);
     return NULL;
@@ -441,12 +512,12 @@ static void *listen_thread (void *arg)
         setsockopt(c, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
         pthread_mutex_lock(&cl_lock);
         int slot = -1;
-        for(int i = 0; i < MAX_CLIENTS; i++) if(clients[i] < 0) { slot = i; break; }
-        if(slot >= 0) clients[slot] = c;
+        for(int i = 0; i < MAX_CLIENTS; i++) if(clients[i].fd < 0) { slot = i; break; }
+        if(slot >= 0) { clients[slot].fd = c; clients[slot].id = next_conn_id++; }
         pthread_mutex_unlock(&cl_lock);
         if(slot < 0) { close(c); continue; }
         pthread_t t;
-        pthread_create(&t, NULL, client_thread, (void *)(intptr_t)c);
+        pthread_create(&t, NULL, client_thread, (void *)(intptr_t)slot);
         pthread_detach(t);
         // a new client sees the welcome message, like a fresh serial connection
         grbl.report.init_message(hal.stream.write_all);
@@ -461,7 +532,7 @@ static const io_stream_t telnet_stream = {
     .write = streamWrite,
     .write_n = streamWriteN,
     .write_char = streamPutC,
-    .write_all = streamWrite,
+    .write_all = streamWriteAll,
     .enqueue_rt_command = streamEnqueueRtCommand,
     .get_rx_buffer_free = streamRxFree,
     .get_rx_buffer_count = streamRxCount,
@@ -625,7 +696,7 @@ bool driver_init (void)
     };
     c_spindle_id = spindle_register(&c_spindle, "C stepper (FPGA)");
 
-    for(int i = 0; i < MAX_CLIENTS; i++) clients[i] = -1;
+    for(int i = 0; i < MAX_CLIENTS; i++) clients[i].fd = -1;
     memset(&rxbuf, 0, sizeof(rxbuf));
     stream_connect(&telnet_stream);
 
