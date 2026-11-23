@@ -10,7 +10,8 @@
   C spindle stepper (a ramped NCO for M3/M4).
 
   Axis map: grblHAL X Y Z C (N_AXIS 4, Y idle) -> FPGA axis 0 X, 1 Z, 2 C, 3 W (W is phase 2).
-  Streams: TCP port 23 (telnet style, what gSender and ioSender use); several clients may connect, output goes to all.
+  Streams: TCP port 23 (telnet style, what gSender and ioSender use); several clients may connect; each one gets the
+           replies to its own lines, status reports / alarms / messages go to all.
   Settings: /var/lib/revturn/settings.bin (grblHAL's own NVS image).
 */
 #define _GNU_SOURCE
@@ -166,9 +167,13 @@ static void stepperWakeUp (void)
 
 // Called at the END of motion (clear_signals false) and also at the START of every motion (st_wake_up, true).
 // Neither may flush: the FPGA may still be playing the previous move. Only a real reset flushes (driver_reset).
+// With clear_signals (st_wake_up) grblHAL also sets its own idea of the direction outputs to 0 and only reports a
+// CHANGE from there: so the direction bits must go to 0 here too, or a move that starts positive after one that
+// ended negative runs the wrong way (the tick words already in the FIFO keep their own direction bits).
 static void stepperGoIdle (bool clear_signals)
 {
-    (void)clear_signals;
+    if(clear_signals)
+        dir_bits = 0;
     pumping = false;
 }
 
@@ -369,6 +374,16 @@ static conn_t clients[MAX_CLIENTS];
 static uint32_t next_conn_id = 1;
 static pthread_mutex_t cl_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t rx_lock = PTHREAD_MUTEX_INITIALIZER;
+// grblHAL's main loop polls the input all the time (right on a microcontroller, a whole CPU core on Linux). With
+// nothing to read it now waits here up to 1 ms; a new line or a realtime command wakes it at once.
+static pthread_mutex_t idle_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t idle_cond;
+static void wake_main (void)
+{
+    pthread_mutex_lock(&idle_lock);
+    pthread_cond_signal(&idle_cond);
+    pthread_mutex_unlock(&idle_lock);
+}
 #define OWNERS 1024                            // >= the most lines that fit in the 1024 byte input buffer
 static uint32_t owner[OWNERS];
 static volatile uint32_t own_head = 0, own_tail = 0;   // written under rx_lock (head) / by the main loop (tail)
@@ -390,20 +405,31 @@ static void net_broadcast (const char *s, size_t n)
     pthread_mutex_unlock(&cl_lock);
 }
 
+static bool has (const char *s, size_t n, const char *w)   // w in the first n bytes of s (s need not end in 0)
+{
+    size_t k = strlen(w);
+    for(size_t i = 0; i + k <= n; i++)
+        if(!memcmp(s + i, w, k)) return true;
+    return false;
+}
+
+static bool bcast_line = false;                      // grblHAL writes a line in pieces: keep a broadcast line whole
 static void net_write (const char *s, size_t n)
 {
+    if(!n) return;
     pthread_mutex_lock(&cl_lock);
-    if(strstr(s, "GrblHAL ") && n < 120 && memchr(s, '[', n))
+    if(n < 120 && has(s, n, "GrblHAL ") && memchr(s, '[', n))
         own_tail = own_head;                         // the welcome after a reset: lines still waiting were dropped
     uint32_t tail = own_tail;
     bool pending = tail != own_head;
-    if(!pending || s[0] == '<' || !strncmp(s, "ALARM", 5)) {
+    if(bcast_line || !pending || s[0] == '<' || (n >= 5 && !memcmp(s, "ALARM", 5))) {
+        bcast_line = memchr(s, '\n', n) == NULL;     // until the end of this line, everyone gets it
         pthread_mutex_unlock(&cl_lock);
         net_broadcast(s, n);
         return;
     }
     send_to(owner[tail], s, n);
-    if(!strncmp(s, "ok", 2) || !strncmp(s, "error:", 6))
+    if((n >= 2 && !memcmp(s, "ok", 2)) || (n >= 6 && !memcmp(s, "error:", 6)))
         own_tail = (tail + 1) % OWNERS;              // that line is answered
     pthread_mutex_unlock(&cl_lock);
 }
@@ -426,7 +452,17 @@ static uint16_t streamRxCount (void)
 static int32_t streamGetC (void)
 {
     uint_fast16_t tail = rxbuf.tail;
-    if(tail == rxbuf.head) return -1;
+    if(tail == __atomic_load_n(&rxbuf.head, __ATOMIC_ACQUIRE)) {
+        struct timespec t;
+        clock_gettime(CLOCK_MONOTONIC, &t);
+        t.tv_nsec += 1000000;
+        if(t.tv_nsec >= 1000000000) { t.tv_sec++; t.tv_nsec -= 1000000000; }
+        pthread_mutex_lock(&idle_lock);
+        if(tail == __atomic_load_n(&rxbuf.head, __ATOMIC_ACQUIRE))
+            pthread_cond_timedwait(&idle_cond, &idle_lock, &t);
+        pthread_mutex_unlock(&idle_lock);
+        return -1;                                   // the main loop runs its realtime work, then asks again
+    }
     int32_t c = rxbuf.data[tail];
     rxbuf.tail = (tail + 1) & (RX_BUFFER_SIZE - 1);
     return c;
@@ -468,6 +504,7 @@ static void push_line (uint32_t id, const uint8_t *line, size_t n)
     rxbuf.data[head] = '\n';
     __atomic_store_n(&rxbuf.head, (head + 1) & (RX_BUFFER_SIZE - 1), __ATOMIC_RELEASE);
     pthread_mutex_unlock(&rx_lock);
+    wake_main();
 }
 
 static void *client_thread (void *arg)
@@ -482,8 +519,10 @@ static void *client_thread (void *arg)
     while((n = recv(fd, buf, sizeof(buf), 0)) > 0)
         for(ssize_t i = 0; i < n; i++) {
             uint8_t c = buf[i];
-            if(enqueue_realtime_command(c))          // ?, !, ~, ctrl-x... handled at once
+            if(enqueue_realtime_command(c)) {        // ?, !, ~, ctrl-x... handled at once
+                wake_main();
                 continue;
+            }
             if(c == '\r' || c == '\n') {
                 if(!(c == '\n' && last == '\r' && len == 0))   // CR LF = one line
                     push_line(id, line, len);
@@ -745,6 +784,10 @@ int main (void)
     pthread_mutexattr_init(&ma);
     pthread_mutexattr_settype(&ma, PTHREAD_MUTEX_RECURSIVE);
     pthread_mutex_init(&irq_lock, &ma);
+    pthread_condattr_t ca;
+    pthread_condattr_init(&ca);
+    pthread_condattr_setclock(&ca, CLOCK_MONOTONIC);
+    pthread_cond_init(&idle_cond, &ca);
     fprintf(stderr, "revturnd: REVTURN (grblHAL) on the S9 | by JMSCNC, makers of RotatoCAM | telnet port %d\n", TELNET_PORT);
     grbl_enter();
     return 0;

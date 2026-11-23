@@ -7,7 +7,7 @@ back grblHAL's own step timing with 10 ns resolution.
 
 You get the same REVTURN lathe screen, the same grblHAL settings and the same telnet stream for gSender or ioSender.
 
-> **Status (2026-11-22): bench tested on an S9 board, not yet run on the real lathe.** Everything in "Tested" below
+> **Status (2026-11-23): bench tested on an S9 board, not yet run on the real lathe.** Everything in "Tested" below
 > was checked on hardware with a logic-level test (FPGA step counters), not with motors. Wire it on the bench first,
 > motors unloaded, and check every axis direction and every switch before it drives the lathe.
 
@@ -153,6 +153,18 @@ rating. If an axis moves the wrong way, flip its `$3` bit; if it steps on the wr
 - Several senders at once: 20 `$F=` file runs through the screen's link while a second client sent about 7,000 `$G`
   commands; every file run ended where it should and every `$G` got its own reply. (Each sender's lines enter
   grblHAL whole and their `ok` / `error` replies go back only to that sender; status reports go to everyone.)
+
+Fixed and retested 2026-11-23 (two random seeds, 12 X / Z / C moves each plus a 60-line file per run, with a
+second client connected; FPGA counts equal grblHAL's position after every move):
+- **Wrong direction after a stop.** grblHAL sets its direction outputs to 0 when motion starts and only reports
+  changes from there; revturnd kept the old direction bits. So a move that started positive after a move that ended
+  negative ran the wrong way while grblHAL counted it the right way. revturnd now clears them too. The earlier
+  "40 random moves" check missed this because it only compared the final position.
+- **Idle CPU.** revturnd used a whole CPU core (about 105 %) doing nothing: grblHAL's main loop polls its input all
+  the time. It now waits up to 1 ms when there is nothing to read, and a new line or a realtime command wakes it at
+  once. Idle: about 7 %.
+- **Status reports with several clients.** grblHAL writes a report in pieces; only the first piece went to everyone
+  and the rest went to the client whose line was pending. Now a broadcast line stays whole for everyone.
 
 ## Not done yet
 
