@@ -57,7 +57,7 @@ jobs:
       - name: No private data (home IPs, WiFi password, tokens, the secret stash)
         run: |
           bad=0
-          if git grep -n -I -E '192\.168\.1\.[0-9]+' -- . ':!*.png' | grep -v -E '192\.168\.1\.(10|300)\b'; then bad=1; fi
-          if git grep -n -I -E '\$75=[^*[:space:]'"'"'"]' -- . ':!*.png'; then bad=1; fi
+          if git grep -n -I -E '192\.168\.1\.[0-9]+' -- . ':!*.png' ':!.github/workflows/ci.yml' | grep -v -E '192\.168\.1\.(10|300)\b'; then bad=1; fi
+          if git grep -n -I -E '\$75=[^*[:space:]'"'"'"]' -- . ':!*.png' ':!.github/workflows/ci.yml'; then bad=1; fi
           if git grep -n -I -i -E 'rose.?engine|guilloche|gen-rose|myemail937|ghp_[A-Za-z0-9]{20}|github_pat_|BEGIN [A-Z ]*PRIVATE KEY' -- . ':!*.png' ':!.github/workflows/ci.yml'; then bad=1; fi
           [ $bad = 0 ] || { echo "::error::private data found (see above)"; exit 1; }
