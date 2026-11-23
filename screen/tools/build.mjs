@@ -5,6 +5,7 @@
 // Bundle src/ into one self-contained page: dist/lathe.html and dist/lathe.html.gz (what the lathe serves).
 import { build } from 'esbuild';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
 const root = new URL('../', import.meta.url);
@@ -36,10 +37,11 @@ console.log(`dist/lathe.html ${html.length} B, dist/lathe.html.gz ${gz.length} B
 
 // The screen is also built into the grblHAL firmware (served from /embedded when flash has no copy).
 // Refresh that copy so the next firmware build carries this version.
+// REVTURN_FW_COPY=0 skips it (a build of another copy of the screen must not overwrite the firmware's page).
 const fwCopy = 'F:/micro-lathe/firmware/ESP32/main/embedded/lathe.html.gz';
-try {
+if (process.env.REVTURN_FW_COPY !== '0' && existsSync('F:/micro-lathe/firmware/ESP32/main/embedded')) {
   await writeFile(fwCopy, gz);
   console.log(`firmware copy updated: ${fwCopy} (rebuild + flash the firmware to ship it)`);
-} catch {
-  console.log('firmware tree not found, skipped the embedded copy');
+} else {
+  console.log('firmware copy skipped');
 }

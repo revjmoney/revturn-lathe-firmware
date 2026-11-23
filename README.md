@@ -121,6 +121,13 @@ chuck rpm; at 8x (13.333) about 250. On this lathe the chuck runs 275 fine at 8x
 Past that the NEMA 23 (6:1, so 1200 motor rpm at 200 chuck rpm) runs out of torque before the driver runs out of steps;
 go to 4x (6.667) or a 48 V driver like a DM542 for more.
 
+## Other hardware: the Antminer S9 (Linux + FPGA)
+
+The same firmware also runs on an **Antminer S9 control board** with [Orphan](https://github.com/revjmoney/orphan):
+the grblHAL core as a Linux program and the step pulses from the S9's FPGA, with the same lathe screen at
+`http://revturn.local:8000/lathe.html`. Build, install and wiring (with a diagram): [s9/README.md](s9/README.md).
+Bench tested on an S9, not yet run on the real lathe.
+
 ## Branches
 - `main` (default): the lathe build. Build with `pio run -e revturn_lathe` (ESP-IDF 4.4).
 - `revturn-lathe`: kept as an alias of `main` so older links keep working.

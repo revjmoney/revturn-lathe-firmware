@@ -5,7 +5,10 @@
 // Upload: multipart POST /files, field "path" first, then the file part whose filename is the
 // full path ("/x.nc") because grblHAL's http_upload opens that name directly.
 
-const base = (host) => `http://${host}`;
+// The ESP32 serves the screen and the file API on port 80. Served from somewhere else on the same host (the S9's
+// revturn_web.py on :8000), the file API is on the page's own port.
+const base = (host) => (typeof location !== 'undefined' && location.port && location.hostname === host
+  ? `http://${host}:${location.port}` : `http://${host}`);
 
 export async function listFiles(host, fetchImpl = fetch) {
   const r = await fetchImpl(`${base(host)}/files?path=%2F&action=list`);
