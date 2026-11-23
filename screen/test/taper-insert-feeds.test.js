@@ -4,6 +4,9 @@
 // @vitest-environment jsdom
 // Rev 2026-11-15: taper correction, the Insert key starts/stops the spindle, fractional X/Z jog feeds.
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+// Connecting starts a background read of the tool table (refreshSetup), which replaces app.state.setup when it
+// lands. Let it land before a test writes its own setup, or the read wipes it (a race vitest 5 exposes).
+const settle = async () => { for (let i = 0; i < 20; i++) await Promise.resolve(); };
 import { applyTaper } from '../src/transform.js';
 import { normalizeSetup, defaultSetup } from '../src/setup.js';
 import { prepareCycle } from '../src/run.js';
@@ -197,13 +200,14 @@ describe('taper on Z jogs (Rev 2026-11-15: "yes add it to the z jog too")', () =
   let root, link, app;
   const $ = (s) => root.querySelector(s);
   const down = (j) => $(`[data-jog="${j}"]`).dispatchEvent(new Event('pointerdown', { bubbles: true }));
-  beforeEach(() => {
+  beforeEach(async () => {
     document.body.innerHTML = '<div id="app"></div>';
     root = document.getElementById('app');
     link = new FakeLink();
     app = startApp(root, link, { host: 'lathe', fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({ files: [] }), text: async () => '{}' }) });
     registerJog(app);
     link.setConnected(true);
+    await settle();
     link.status('<Idle|MPos:0,0,0,0>');
     app.state.setup.taper = { enabled: true, perInch: 0.02, zRef: 0 };
     app.showMode('JOG');

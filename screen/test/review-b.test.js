@@ -4,6 +4,9 @@
 // @vitest-environment jsdom
 // Code review 2026-11-10, section B (wrong cut or wrong position).
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+// Connecting starts a background read of the tool table (refreshSetup), which replaces app.state.setup when it
+// lands. Let it land before a test writes its own setup, or the read wipes it (a race vitest 5 exposes).
+const settle = async () => { for (let i = 0; i < 20; i++) await Promise.resolve(); };
 import { applyTool, dryRun } from '../src/transform.js';
 import { prepareCycle, prepareProgram } from '../src/run.js';
 import { compileProgram } from '../src/program.js';
@@ -83,13 +86,14 @@ describe('B2: ZERO and GO TO ZERO use the active tool tip', () => {
   let root, link, app;
   const $ = (s) => root.querySelector(s);
   const click = (s) => $(s).dispatchEvent(new MouseEvent('click', { bubbles: true }));
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.useFakeTimers();
     document.body.innerHTML = '<div id="app"></div>';
     root = document.getElementById('app');
     link = new FakeLink();
     app = startApp(root, link, { host: 'lathe', fetchImpl: async () => ({ ok: true, status: 200, json: async () => ({ files: [] }), text: async () => '{}' }) });
     link.setConnected(true);
+    await settle();
     link.status('<Idle|MPos:0,0,0,0>');
     app.state.setup.tools[1].dx = 0.2;
     app.state.setup.tools[1].dz = 1.2;
