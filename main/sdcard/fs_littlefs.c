@@ -359,8 +359,8 @@ FLASHMEM static int fs_utime (const char *filename, struct tm *modified)
 
 FLASHMEM static bool fs_getfree (vfs_free_t *free)
 {
-    free->size = lfs_dev.config->block_count * lfs_dev.config->block_size;
-    free->used = lfs_fs_size(&lfs_dev.fs) * lfs_dev.config->block_size;
+    free->size = (uint64_t)lfs_dev.config->block_count * lfs_dev.config->block_size;
+    free->used = (uint64_t)lfs_fs_size(&lfs_dev.fs) * lfs_dev.config->block_size;
 
     return true;
 }

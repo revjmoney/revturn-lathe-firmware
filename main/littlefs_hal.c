@@ -67,7 +67,7 @@ int littlefs_api_prog(const struct lfs_config *c, lfs_block_t block, lfs_off_t o
 int littlefs_api_erase(const struct lfs_config *c, lfs_block_t block)
 {
     esp_littlefs_t * efs = c->context;
-    size_t part_off = block * c->block_size;
+    size_t part_off = (size_t)block * c->block_size;
     esp_err_t err = esp_partition_erase_range(efs->partition, part_off, c->block_size);
     if (err) {
         ESP_LOGE(TAG, "failed to erase addr %08x, size %08x, err %d", (unsigned int) part_off, (unsigned int) c->block_size, err);

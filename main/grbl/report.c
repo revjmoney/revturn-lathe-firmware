@@ -669,8 +669,8 @@ FLASHMEM void report_ngc_parameters (void)
     tool_data_t *tool_data;
     tool_table_entry_t *tool;
 
-    for (idx = 1; idx <= grbl.tool_table.n_tools; idx++) {
-        if((tool_data = (tool = grbl.tool_table.get_tool_by_idx((uint32_t)idx))->data) &&
+    for (uint32_t t_idx = 1; t_idx <= grbl.tool_table.n_tools; t_idx++) {
+        if((tool_data = (tool = grbl.tool_table.get_tool_by_idx(t_idx))->data) &&
             (settings.macro_atc_flags.random_toolchanger ? tool_data->tool_id >= 0 : tool_data->tool_id > 0)) {
             hal.stream.write("[T:");
             hal.stream.write(uitoa(tool_data->tool_id));

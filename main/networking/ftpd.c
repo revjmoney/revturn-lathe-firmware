@@ -911,8 +911,9 @@ FLASHMEM static void cmd_pasv (char *arg, struct tcp_pcb *pcb, ftpd_msgstate_t *
     }
 
     if (!(fsm->datalistenpcb = tcp_new())) {
-        free(fsm->datafs);
         sfifo_close(&fsm->datafs->fifo);
+        free(fsm->datafs);
+        fsm->datafs = NULL;
         send_msg(pcb, fsm, msg451);
         return;
     }

@@ -1515,7 +1515,7 @@ FLASHMEM static status_code_t list_commands (const struct webui_cmd_binding *com
         if(cmdp == NULL)
             strappend(buf, 2, "This command is not supported: ", argv[0]);
         else
-            sprintf(buf, "[ESP%d]%s", cmdp->id, cmdp->help);
+            sprintf(buf, "[ESP%d]%s", (int)cmdp->id, cmdp->help);
 
         if(json) {
             if((ok = !!(jstream = json_create_response_hdr(command->id, ResponseHdrType_AddObject, cmdp != NULL, cmdp == NULL ? buf : NULL, file)))) {
@@ -1538,7 +1538,7 @@ FLASHMEM static status_code_t list_commands (const struct webui_cmd_binding *com
             for(i = 0; i < n; i++) {
                 if((ok = json_start_object(jstream)))
                 {
-                    sprintf(buf, "[ESP%d]%s", webui_commands[i].id, webui_commands[i].help);
+                    sprintf(buf, "[ESP%d]%s", (int)webui_commands[i].id, webui_commands[i].help);
 
                     ok = ok & json_add_string(jstream, "id", uitoa(webui_commands[i].id));
                     ok = ok & json_add_string(jstream, "help", buf);
@@ -1551,7 +1551,7 @@ FLASHMEM static status_code_t list_commands (const struct webui_cmd_binding *com
     } else {
         vfs_puts("[List of ESP3D commands]" WEBUI_EOL, file);
         for(i = 0; i < n; i++) {
-            sprintf(buf, "[ESP%d]%s" WEBUI_EOL, webui_commands[i].id, webui_commands[i].help);
+            sprintf(buf, "[ESP%d]%s" WEBUI_EOL, (int)webui_commands[i].id, webui_commands[i].help);
             vfs_puts(buf, file);
         }
     }

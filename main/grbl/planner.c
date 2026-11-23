@@ -201,7 +201,7 @@ inline static void plan_reset_buffer (block_buffer_t *buffer, bool init)
 {
     if(init) {
         // Set up stepper block ringbuffer as circular doubly linked list
-        uint_fast8_t idx;
+        uint_fast16_t idx;
         for(idx = 0 ; idx <= buffer->size ; idx++) {
             buffer->blocks[idx].prev = &buffer->blocks[idx == 0 ? buffer->size : idx - 1];
             buffer->blocks[idx].next = &buffer->blocks[idx == buffer->size ? 0 : idx + 1];
