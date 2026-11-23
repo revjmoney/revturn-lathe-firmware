@@ -1,0 +1,25 @@
+# Publishing a GitHub release builds the lathe firmware and attaches the .bin files to it.
+name: Release firmware
+on:
+  release:
+    types: [published]
+permissions:
+  contents: write
+jobs:
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: pip install -q platformio
+      - run: pio run -e revturn_lathe
+      - name: Attach to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd .pio/build/revturn_lathe
+          for f in firmware bootloader partitions; do cp $f.bin "revturn-${{ github.event.release.tag_name }}-$f.bin"; done
+          sha256sum revturn-*.bin > "revturn-${{ github.event.release.tag_name }}.sha256"
+          gh release upload "${{ github.event.release.tag_name }}" revturn-*.bin revturn-*.sha256 --clobber

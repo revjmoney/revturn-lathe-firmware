@@ -1,0 +1,63 @@
+# REVTURN CI: on every push and pull request, build the real lathe firmware, test and build the screen, and guard
+# against private data. by JMSCNC, makers of RotatoCAM. [Rev. J. Money - 2026]
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  screen:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: screen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: screen/package-lock.json
+      - run: npm ci
+      - name: Screen tests (vitest)
+        run: npm test
+      - name: Screen build
+        run: npm run build
+
+  firmware:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ hashFiles('platformio.ini') }}
+      - run: pip install -q platformio
+      - name: Build the lathe firmware (pio run -e revturn_lathe)
+        run: pio run -e revturn_lathe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: revturn-lathe-firmware
+          path: |
+            .pio/build/revturn_lathe/firmware.bin
+            .pio/build/revturn_lathe/bootloader.bin
+            .pio/build/revturn_lathe/partitions.bin
+          retention-days: 30
+
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No private data (home IPs, WiFi password, tokens, the secret stash)
+        run: |
+          bad=0
+          if git grep -n -I -E '192\.168\.1\.[0-9]+' -- . ':!*.png' | grep -v -E '192\.168\.1\.(10|300)\b'; then bad=1; fi
+          if git grep -n -I -E '\$75=[^*[:space:]'"'"'"]' -- . ':!*.png'; then bad=1; fi
+          if git grep -n -I -i -E 'rose.?engine|guilloche|gen-rose|myemail937|ghp_[A-Za-z0-9]{20}|github_pat_|BEGIN [A-Z ]*PRIVATE KEY' -- . ':!*.png' ':!.github/workflows/ci.yml'; then bad=1; fi
+          [ $bad = 0 ] || { echo "::error::private data found (see above)"; exit 1; }
