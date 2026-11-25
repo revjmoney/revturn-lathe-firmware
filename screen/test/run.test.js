@@ -85,6 +85,41 @@ describe('prepareProgram', () => {
   });
 });
 
+describe('gang plate (2026-11-24)', () => {
+  const prog = { name: 'p', steps: [{ cycle: 'face', params: { ...faceP, tool: 1 } }, { cycle: 'turn', params: { ...turnP, tool: 2 } }] };
+  const gang = (clearX = 2.5) => { const s = setup(); s.gang = { enabled: true, clearX }; return s; };
+
+  it('swaps offsets without a stop: clearance move + message, no M5 or M0', () => {
+    const r = prepareProgram(prog, ctx({ setup: gang() }));
+    expect(r.ok).toBe(true);
+    const i = r.lines.indexOf('(MSG, GANG TOOL T2 parting)');
+    expect(i).toBeGreaterThan(0);
+    expect(r.lines[i - 1]).toBe('G0 X2.5');
+    expect(r.lines).not.toContain('M0');
+    expect(r.lines).toContain('G0 X1.0000'); // T2 offset still applied
+  });
+
+  it('works for a single cycle with a non-active tool', () => {
+    const r = prepareCycle('face', { ...faceP, tool: 2 }, ctx({ setup: gang() }));
+    expect(r.ok).toBe(true);
+    expect(r.lines.slice(1, 3)).toEqual(['G0 X2.5', '(MSG, GANG TOOL T2 parting)']);
+    expect(r.lines).not.toContain('M0');
+  });
+
+  it('a clearance past the stroke limit is refused', () => {
+    const r = prepareProgram(prog, ctx({ setup: gang(5) }));
+    expect(r.ok).toBe(false);
+    expect(r.error).toMatch(/^OVERTRAVEL X\+/);
+  });
+
+  it('off by default, and old setup.json files load with it off', async () => {
+    const { normalizeSetup } = await import('../src/setup.js');
+    expect(defaultSetup().gang).toEqual({ enabled: false, clearX: 3 });
+    expect(normalizeSetup({}).gang).toEqual({ enabled: false, clearX: 3 });
+    expect(normalizeSetup({ gang: { enabled: true, clearX: 2 } }).gang).toEqual({ enabled: true, clearX: 2 });
+  });
+});
+
 describe('review fixes: programs', () => {
   it('g-code steps get the tool offset and a tool change', () => {
     const p = { name: 'p', steps: [{ cycle: 'gcode', params: { text: 'G0 X1 Z0', tool: 2 } }] };

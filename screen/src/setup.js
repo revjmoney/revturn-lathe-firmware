@@ -13,6 +13,10 @@ const DEFAULT_LIMITS = { enabled: false, xMax: 3, xMin: -0.05, zMax: 3, zMin: -4
 // Taper correction (Rev 2026-11-15): see transform.applyTaper. Off until Rev turns it on and enters his number.
 const DEFAULT_TAPER = { enabled: false, perInch: 0, zRef: 0 };
 
+// Gang plate (2026-11-24): tool changes swap offsets only, no M5/M0 stop. clearX = diameter (T1 frame, inches) the
+// slide backs out to before the next tool works. Off by default: a QCTP lathe still gets the manual stop.
+const DEFAULT_GANG = { enabled: false, clearX: 3 };
+
 const num = (v, d) => (typeof v === 'number' && Number.isFinite(v) ? v : d);
 
 export function defaultSetup() {
@@ -20,6 +24,7 @@ export function defaultSetup() {
     tools: Array.from({ length: N_TOOLS }, (_, i) => ({ n: i + 1, desc: i === 0 ? 'T1 reference' : '', dx: 0, dz: 0 })),
     limits: { ...DEFAULT_LIMITS },
     taper: { ...DEFAULT_TAPER },
+    gang: { ...DEFAULT_GANG },
     activeTool: 1,
   };
 }
@@ -36,7 +41,9 @@ export function normalizeSetup(raw) {
   const at = Number.isInteger(raw?.activeTool) && raw.activeTool >= 1 && raw.activeTool <= N_TOOLS ? raw.activeTool : 1;
   const t = raw?.taper ?? {};
   const taper = { enabled: t.enabled === true, perInch: num(t.perInch, 0), zRef: num(t.zRef, 0) };
-  return { tools, limits, taper, activeTool: at };
+  const g = raw?.gang ?? {};
+  const gang = { enabled: g.enabled === true, clearX: num(g.clearX, DEFAULT_GANG.clearX) };
+  return { tools, limits, taper, gang, activeTool: at };
 }
 
 export const toolById = (setup, n) => setup.tools.find((t) => t.n === n) ?? setup.tools[0];

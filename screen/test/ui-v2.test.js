@@ -199,6 +199,10 @@ describe('review fixes: screen', () => {
     expect($('[data-tooltag]').textContent).toBe('T3');
     await vi.waitFor(() => expect(JSON.parse(store.get('setup.json')).activeTool).toBe(3));
   });
+  it('the active tool follows a gang plate tool change message too', () => {
+    link.line('[MSG:GANG TOOL T4 threading]');
+    expect(app.state.setup.activeTool).toBe(4);
+  });
 
   it('keeps the tool table and blocks runs when setup.json cannot be read', async () => {
     app.state.setup.tools[1].dx = 0.25;

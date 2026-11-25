@@ -17,11 +17,19 @@ import { toolById } from './setup.js';
 export const CYCLES = { face, turn, bore, thread, groove, drill, polygon, index };
 
 // Manual tool change (QCTP): spindle off, say which tool, program stop. GO resumes.
-export function toolChange(tool) {
+// Gang plate (2026-11-24, setup.gang.enabled): every tool is already on the slide, so there is no stop and the
+// spindle keeps running. The slide backs out to the gang clearance X (diameter, T1 frame) before the next tool's
+// moves, so the other tools on the plate swing clear of the part. The new tool's offsets do the rest.
+export function toolChange(tool, gang) {
   // parentheses inside the message would end the comment early and run the rest as g-code
   const desc = String(tool.desc ?? '').replace(/[()]/g, '').replace(/\s+/g, ' ').trim();
-  return ['M5', `(MSG, CHANGE TO T${tool.n}${desc ? ' ' + desc : ''})`, 'M0'];
+  const name = `T${tool.n}${desc ? ' ' + desc : ''}`;
+  if (gang?.enabled) return [`G0 X${Number(Number(gang.clearX).toFixed(4))}`, `(MSG, GANG TOOL ${name})`];
+  return ['M5', `(MSG, CHANGE TO ${name})`, 'M0'];
 }
+
+// The tool number in a tool-change message, manual or gang (the screen follows it to update the active tool).
+export const TOOL_MSG = /(?:CHANGE TO|GANG TOOL) T(\d+)/;
 
 // Clean a Fusion (or other) lathe post file for a PROG g-code step.
 export function sanitizeImport(text) {
@@ -82,7 +90,7 @@ export function compileProgram(program, ctx) {
     }
     if (setup && cycle !== 'index') { // imported g-code runs in the chosen tool's frame too
       const tool = toolById(setup, params?.tool ?? current ?? 1);
-      if (tool.n !== current) { out.push(...toolChange(tool)); current = tool.n; }
+      if (tool.n !== current) { out.push(...toolChange(tool, setup.gang)); current = tool.n; }
       lines = applyTool(lines, tool);
     }
     c = lastC(lines, c);

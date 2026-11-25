@@ -1,5 +1,13 @@
 # REVTURN lathe screen: feature log
 
+## 2026-11-24
+- **Gang plate** (SET UP screen, for lathes with every tool on one plate): with "Gang plate ON", a tool change in
+  a cycle or program no longer stops (no `M5`, no `M0`). It emits `G0 X<clearance dia>` (T1 frame) so the slide backs
+  out and the other tools clear the part, then `(MSG, GANG TOOL Tn desc)`; the new tool's offsets do the rest and
+  the DRO follows the message. Clearance X defaults to 3 in, and stroke limits check it like any other move. Off by
+  default, saved in `/setup.json` (`gang {enabled, clearX}`); old files load with it off. Asked for by the first
+  outside REVTURN builder (servo spindle, gang tooling). Also fixed `tools/build.mjs` (duplicate import broke builds).
+
 ## 2026-11-15
 - **Taper correction** (SET UP screen): if a straight cut comes out tapered, enter the diameter change per inch of Z
   (plus = fatter toward the tailstock) and the Z where it is zero. Every cycle and program then shifts X slightly as

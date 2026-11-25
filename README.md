@@ -65,6 +65,8 @@ bass, with a dolphin-squeal intro. Footage, G-code and charts: [revturn-ode-to-j
 - X/Z jog slider down to **0.1 in/min** in 0.1 steps for slow, fine moves.
 - **Taper correction** (SET UP): if straight cuts come out tapered, enter the diameter change per inch and every
   cycle, program, MDI line and Z jog shifts X as Z moves, so the cut comes out straight. Off by default.
+- **Gang plate** (SET UP): for lathes with every tool on one plate. Tool changes just swap offsets: no spindle stop,
+  no pause. The slide backs out to a clearance diameter first so the other tools clear the part. Off by default.
 - HOLD and STOP always on screen. Any connected screen can HOLD or STOP the machine; extra screens show the
   live machine in VIEW ONLY.
 - Feed / spindle / rapid overrides, DRY RUN (air cut, spindle off), alarm explain + RESET / UNLOCK.

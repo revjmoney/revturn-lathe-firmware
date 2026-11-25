@@ -35,7 +35,7 @@ export function prepareCycle(cycle, params, ctx) {
     const tool = toolById(ctx.setup, params.tool ?? ctx.setup.activeTool);
     lines = applyTool(lines, tool);
     if (tool.n !== ctx.setup.activeTool) {
-      lines = [lines[0], ...toolChange(tool), ...lines.slice(1)];
+      lines = [lines[0], ...toolChange(tool, ctx.setup.gang), ...lines.slice(1)];
     }
   }
   const tipDz = ctx.setup && cycle !== 'index' ? toolById(ctx.setup, params.tool ?? ctx.setup.activeTool).dz || 0 : 0;

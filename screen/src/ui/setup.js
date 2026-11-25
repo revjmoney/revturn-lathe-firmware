@@ -21,10 +21,15 @@ export function registerSetup(app) {
       <label>Z off<input name="t${t.n}dz" inputmode="decimal" value="${f4(t.dz)}"${t.n === 1 ? ' readonly' : ''}></label>
       ${t.n === 1 ? '<span class="soon">reference tool</span>' : `<button class="btn" data-touch="${t.n}:X" data-needs-link>TOUCH X</button><button class="btn" data-touch="${t.n}:Z" data-needs-link>TOUCH Z</button>`}
     </div>`).join('');
-    const L = s.limits, T = s.taper;
+    const L = s.limits, T = s.taper, G = s.gang;
     view = h(`<div>
       <div class="lbl2">TOOLS: tap a T to make it the active tool (lit). Offsets from T1, inches: tip reads T1 position minus offset</div>
       <div class="ttable">${rows}</div>
+      <div class="lbl2">GANG PLATE: all tools on the slide at once. A tool change only swaps offsets (no spindle stop, no pause): the slide first backs out to the clearance diameter (T1 frame) so the other tools clear the part.</div>
+      <div class="form">
+        <label class="chk"><input type="checkbox" name="gangOn"${G.enabled ? ' checked' : ''}> Gang plate ON</label>
+        <label>Clearance X (dia)<input name="gangClearX" inputmode="decimal" value="${G.clearX}"></label>
+      </div>
       <div class="lbl2">STROKE LIMITS (work coordinates, X as diameter; used only when the LIMITS switch is ON)</div>
       <div class="form">
         <label>X max (dia)<input name="xMax" inputmode="decimal" value="${L.xMax}"></label>
@@ -62,8 +67,10 @@ export function registerSetup(app) {
         tools: app.state.setup.tools.map((t) => ({ n: t.n, desc: read(`t${t.n}desc`), dx: Number(read(`t${t.n}dx`)), dz: Number(read(`t${t.n}dz`)) })),
         limits: { enabled: app.state.setup.limits.enabled === true, xMax: Number(read('xMax')), xMin: Number(read('xMin')), zMax: Number(read('zMax')), zMin: Number(read('zMin')) },
         taper: { enabled: view.querySelector('[name="taperOn"]').checked, perInch: Number(read('taperPerInch')), zRef: Number(read('taperZRef')) },
+        gang: { enabled: view.querySelector('[name="gangOn"]').checked, clearX: Number(read('gangClearX')) },
         activeTool: app.state.setup.activeTool,
       };
+      if (!Number.isFinite(raw.gang.clearX) || read('gangClearX') === '') { app.msg('Gang plate: clearance X must be a number'); return; }
       if (!Number.isFinite(raw.taper.perInch) || !Number.isFinite(raw.taper.zRef) || read('taperPerInch') === '' || read('taperZRef') === '') {
         app.msg('Taper correction: dia per inch and Z must be numbers'); return;
       }

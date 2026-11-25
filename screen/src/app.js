@@ -10,6 +10,7 @@ import { Keypad, zeroLine, setLine } from './keypad.js';
 import { taperMdiLine, modesAfter } from './transform.js';
 import { describe as explain } from './errors.js';
 import { defaultSetup, loadSetup, saveSetup, toolById, N_TOOLS } from './setup.js';
+import { TOOL_MSG } from './program.js';
 import { mountMdi } from './ui/mdi.js';
 import { createBackplot } from './backplot.js';
 import { drawPreview } from './ui/preview.js';
@@ -526,8 +527,8 @@ export function startApp(root, link, opts = {}) {
     if (/^ALARM:\d+/.test(line)) msg(`${explain(line)}: press UNLOCK after checking the machine`);
     if ((m = /^\[MSG:(.*)\]$/.exec(line))) {
       msg(m[1].trim());
-      // a program's manual tool change: the DRO and later cycles now use that tool
-      const t = /CHANGE TO T(\d+)/.exec(m[1]);
+      // a program's tool change (manual or gang): the DRO and later cycles now use that tool
+      const t = TOOL_MSG.exec(m[1]);
       if (t && Number(t[1]) >= 1 && Number(t[1]) <= N_TOOLS) { state.setup.activeTool = Number(t[1]); renderDro(); persistSetup(); }
     }
     const gc = /^\[GC:(.*)\]$/.exec(line);
