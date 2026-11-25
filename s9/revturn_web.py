@@ -61,9 +61,15 @@ def safe_name(n):
 
 def file_path(n, prefix=''):
     """The full path of file n in FILES_DIR, or None if it would land anywhere else."""
+    # Names are already limited by NAME_RE (no slashes, never . or ..). The prefix test below is the form
+    # CodeQL's path-injection query recognizes as a guard; the dirname test keeps files out of subfolders.
     root = os.path.realpath(FILES_DIR)
     p = os.path.realpath(os.path.join(root, prefix + n))
-    return p if os.path.dirname(p) == root else None
+    if not p.startswith(root + os.sep):
+        return None
+    if os.path.dirname(p) != root:
+        return None
+    return p
 
 
 def boundary_of(ctype):
